@@ -1,0 +1,374 @@
+shell 
+	shell是什么？
+	shell是一个命令解析器
+	解析用户的输入,输出执行后的结果
+	从用户的角度:shell是用户和linux内核沟通的桥梁
+	从程序员的角度：shell本身是一个使用C语言编写的程序
+				打开终端时，就启动了这个程序
+	
+	有很多人都实现了这个程序，有不同的shell
+	cat /etc/shells 查看系统中的shell
+	echo $SHELL 查看系统中正在使用的shell
+		SHELL:环境变量
+	
+	我们可以把很多我们需要执行shell命令，以一种语言组织起来，交给shell去运行
+	这种语言--->shell脚本语言
+	
+	shell是一门解释性语言，不需要提前编译
+	可以直接交给shell运行
+	
+1.shell脚本
+	写第一个shell脚本
+	shell脚本的后缀名是  .sh
+	vim test.sh
+	-----------------
+	#!/bin/bash   #指定此脚本使用什么shell去执行
+	echo "hello shell"
+	----------------
+	
+	#表示注释(第一行除外)
+	
+	给脚本增加可执行的权限：
+		chmod +x test.sh
+		
+	运行脚本文件：
+		./test.sh  
+		
+2.shell变量
+	shell中变量是没有类型的，全部都是字符串
+	shell中的变量不需要定义，直接赋值使用(类型于makefile)
+	
+	变量名=值
+	
+	使用变量的方法:
+		$变量名
+		${变量名}
+	name=zhangsan
+	echo name  ===> name
+	echo $name ====> zhangsan
+		
+	shell中的四种变量：
+	1.自定义变量
+		语法：
+		变量名=值   =两边没有空格
+		DATE=`date`
+		``：反撇号(键盘上tab上的那个键)
+			作用：引用反撇号里面那个命令或者可执行程序的输出结果
+		
+	2.位置变量和特殊变量
+		传递给脚本的参数或者函数的参数
+		如:
+			./test.sh 123 abc
+			123 abc 就是脚本的两个参数
+			在脚本中或者函数中怎么使用这两个参数呢？ 位置变量
+			$0  第0个参数,命令行的程序名称   ./test.sh
+			$1	第1个参数 ---> 123
+			$2	第1个参数 ---> abc
+				$1~$9 表示命令行的第1个到第9个参数
+			$# 	表示所有的命令行参数(不包括脚本名称)的个数
+			$@	所有的命令行参数本身(不包括脚本名称)
+				每一个命令行参数都是一个变量，以空格隔开
+				$@ <---> "$1"  "$2" "$3".....
+			$*	所有的命令行参数本身(不包括脚本名称)
+				一个整体的字符串
+				$* <---> "$1$2$3".....
+			$?	表示前一个命令的退出码(返回值,进程的返回值)
+				linux中很多函数和命令默认返回0表示执行成功
+	
+	3.环境变量
+		shell运行的环境中一些共用的变量
+		PATH: 命令或者可执行程序的搜索路径
+		HOME: 用户的主目录
+		SHELL: 用户使用的shell
+		
+		修改环境变量的值:
+			1.临时性的(对此终端有效)
+				export 导出环境变量
+				export PATH=$PATH:/usr/local/arm/arm-2009q3/bin
+			
+			2.对当前用户有效
+				把上面的语句写进当前用户的配置文件
+				家目录的 .bashrc
+				export PATH=$PATH:/usr/local/arm/arm-2009q3/bin
+			
+			3.对所有的用户有效
+				把上面的语句写进系统的配置文件
+				/etc/profile
+				export PATH=$PATH:/usr/local/arm/arm-2009q3/bin
+			
+3.shell中的数组
+	数组名[下标]=值 下标:0,1,2,3,4...n-1
+	引用方法：
+		引用数组中的所有的元素
+		${数组名[*]}
+		${数组名[@]}
+	
+		引用数组中的元素
+		${数组名[下标]}
+		${数组名} 在bash中默认是引用数组的第一个元素
+		
+		
+4.shell中的语句
+	4.1 说明性语句(注释)
+		以 # 开头的就是注释行 第一行除外
+		
+	4.2 功能性语句
+		可以是任意的shell命令(ls,cp,mkdir...)
+		自己的可执行程序
+		shell的内部函数
+		
+		read:在shell中表示从终端读取输入
+			ru:
+				read var1 var2
+				从键盘获取两个字符串,第一个字符串保存在var1中，第二个字符串保存在var2中
+				
+			重定向问题:
+			1.输入重定向
+				默认的输入请求通常是标准输入(键盘) ---->0
+				我们也可以很方便的把输入重定向到一个文件中，这种情况，我们叫做输入重定向
+				在命令后面添加 < filename
+				该命令的所有的输入都来自于filename指定的文件中
+				
+				
+			2.输出重定向
+				默认命令的输出通常是标准输出设备(终端) ----> 1
+				我们也可以很方便的把输出重定向到一个文件中，这种情况，我们叫做输出重定向
+				在命令后面添加 > filename
+				在命令后面添加 >> filename
+				该命令的所有的输出都输出到filename指定的文件中
+				echo 123 > 1.txt
+					>:会先清空filename的内容，然后把结果写入到filename中去
+					>>:追加,把输出的内容直接写入到filename文件原有内容的后面
+		
+		
+		expr:算术运算命令 expr主要的作用是进行简单的算术运算	
+			+  -   \*   \  %  \:乘号需要转义字符  
+			如：
+				expr 5 + 3 操作数和操作符，前后必须至少一个空格
+				
+				ret=`expr 5 + 3 \* 4`
+				i=6
+				ret=`expr $i + 5 + 3 \* 3`
+				echo $ret  
+				20
+		练习一下讲过的内容
+			写一个脚本,计算两个整数的和，整数从键盘输入。
+			
+		test 可以测试三种对象
+			字符串 整数 文件
+			a.字符串  符合测试条件返回0
+				= 测试两个字符串的内容是否完全一样
+					test "abc" = "abc" //相当返回0
+					echo $?  
+			
+				!= 测试两个字符串的内容是否不一样
+					test "abc" != "123" //不相当返回0
+					echo $?
+
+				-z zero 测试字符串是否为空
+					test -z "" //为空返回0
+					echo $?
+				
+					test -z "xxx" //不为空返回1
+					echo $?
+				
+				-n not NULL 测试字符串是否不为空
+					test -n "xxx" 	//不为空返回0
+					
+				如：
+					str=
+					test -z $str
+					---->在某些shell中相当于
+						test -z
+						后面少了一个操作数会报错
+						在测试字符串是否为空的时候，需要放在字符串为空带来语法错误,在需要测试的字符串后面人为的增加一个字符
+						${str}x
+					test -z $str
+						---->
+					test ${str}x = x
+					
+			b.整数 符合测试条件返回0
+				test a -eq b   equal 测试两个整数a和b是否相等
+ 				test a -ne b   not equal 测试两个整数是否不相等
+				test a -gt b   greater than 测试a>b
+				test a -lt b	little than 测试a<b
+				test a -ge b   greater and equal 测试a>=b
+				test a -le b	little and equal 测试a<=b
+				
+			c.文件测试 符合测试条件返回0
+				test -d filename 测试filename是否为一个目录(directory)
+				test -f filename 测试filename是否为一个普通文件(file)
+				test -l filename 测试filename是否为一个连接文件(link)
+				...
+				
+				test -r filename 测试filename是否存在并且可读
+				test -w filename 测试filename是否存在并且可写
+				test -x filename 测试filename是否存在并且可执行
+				
+				test -s filename 测试filename是否存在并且长度不为0(size)
+				
+				test file1 -nt file2  new than 测试file1是否在file2后面修改
+				test file1 -ot file2  old than 测试file1是否在file2前面修改
+				
+			最后:test命令可以简写为 []
+				test expression  <=====> [ expression ]
+				测试两个字符串是否相等:
+					test ${str1}x = ${str2}x
+					=====>
+					[ ${str1}x = ${str2}x ]
+				
+				
+	4.3 结构性语句(分支循环,循环语句)
+		a.条件语句
+			if command; then
+				....
+				语句列表
+			else //可以没有
+				语句列表
+			fi
+
+			if [ -f $1 ]; then
+				echo "regular file"
+			else
+				echo "not regular file"
+			fi
+			
+			注意:
+			if后面的是条件成立指向then后面的语句
+			但是单独的test测试，满足条件结果为0
+			
+		b.多路分支语句
+			case 字符串变量 in
+				模式 1)
+				.....
+				语句列表
+				;; #类似于C语言种的break但是在shell中 ;; 不能省略
+				模式 2)
+				.....
+				语句列表
+				;;
+				模式 3)
+				.....
+				语句列表
+				;;
+				
+				...
+				
+				模式 n)
+				.....
+				语句列表
+				;;
+			esac
+			
+			case语句真正强大的地方是 模式可以使用正则表达式描述
+			模式不一定是固定的字符串,可以是某一种规则
+				* shell通配符 任意多个字符
+					*.c  --->代表以.c结尾的任意字符串
+				? shell通配符 任意单个字符
+			
+			case 12345 in
+				[0-9]+)
+				....
+			esac	
+
+			判断一个文件的类型是c文件还是h文件
+			case $1 in
+				*.c)
+				echo "C source"
+				;;
+				*.h)
+				echo "header file"
+				;;
+				*.cpp)
+				echo "cpp source"
+			esac
+				
+		c.循环语句
+			for 变量名 in 单词表
+			do
+				...
+				循环体语句
+			done
+
+			单词表：以空白字符分隔开的字符串列表
+				如：a b c d e f g
+			for循环执行的次数就是单词表中单词的个数，并且每一次指向的时候
+				“变量名”的值就是取一个单词的值
+			例子：
+				for var in a b c d
+				do
+					echo $var
+				done
+				====>
+					a
+					b
+					c 
+					d
+	
+			while 命令或者是表达式
+			do
+				命令列表
+			done
+			
+			
+			//until只有当测试条件或者命令结果为 假 时，才进行循环，条件成立
+			退出循环
+			until 命令或者是表达式
+			do
+				命令列表
+			done
+	
+			break 和 continue
+				break n
+				跳出第n层的循环
+				continue n
+				转到最近的第n层循环语句执行下一次循环
+			
+				break 1
+				continue 1
+				默认不加n 含义和C语言中的一模一样
+		
+			shell 中的 ${},##和%%的用法
+			
+			
+	shell 函数	
+		定义方法:
+		function_name()
+		{
+			....
+			函数体
+		}
+		
+		function_name 你自己定义的函数的函数名
+		
+		函数的调用:
+		function_name arg1 arg2 arg3 ...
+			在函数内部可以使用位置变量的
+			arg1 ----> $1
+			arg2 ----> $2
+			arg3 ----> $3
+			
+		函数有返回值(函数的执行结果)
+			1. `` 取里面的敏力或者可执行程序的标准输出的内容
+			
+			2.function_name arg1 arg2
+				ret=$?
+				获取function_name的返回值，你必须在定义函数的时候
+				在函数体中有一个return语句
+				
+	作业：
+		1.写一个简单的shell，求1000以内所有素数之和
+		2.写一个脚本，计算一个文件夹中有多少个文件 
+			xx=`ls`
+			num=0
+			for var in $xx
+			do
+				num=`expr $num + 1 `
+			done
+			
+		3.写一个脚本，计算一个文件中有多少行
+		4.下一个脚本,实现文件的拷贝功能
+	
+				
+			
+			

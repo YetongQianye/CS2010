@@ -1,0 +1,33 @@
+grep 是用来在一个文件夹中查找文件中指定的内容(字符串)
+egrep 是使用扩展的正则表达式去查找内容
+
+NAME
+       grep, egrep, fgrep, rgrep - print lines matching a pattern
+
+SYNOPSIS
+       grep [OPTIONS] PATTERN [FILE...]
+       grep [OPTIONS] [-e PATTERN | -f FILE] [FILE...]
+	   
+		grep [options] [目标字符串(可以是正则表达式)]  filelist
+		在filelist列举出来的文件中查找以“正则表达式”描述符的字符串
+		省略filelist 默认在当前文件夹中查找
+		[OPTIONS]:选项
+			-n  显示查找到的字符串在文件中的行号
+			-a 	all 当你指定搜索文件夹的时候，对所有文件都搜索
+			-r 	当指定的文件路径是文件夹的时候，递归的搜索此文件夹
+			-E	使用扩展的正则表达式搜索
+			grep -E ---> egrep
+			
+			-i ignore 忽略指定字符串的大小写
+			-#	打印找到的行的同时打印匹配的行的上下 # 行
+				grep -nar3 main
+				
+		PATTERN:模式
+			你要查找的字符串,可以是正则表达式
+			
+		------->
+		grep -nar 要搜索的内容 要搜索的文件列表
+
+
+
+

@@ -1,0 +1,91 @@
+NAME
+   find - search for files in a directory hierarchy
+	按照要求在指定的文件夹中搜索符合条件的文件
+	
+	用法：
+		find [path...] [optinos]
+			path:查找路径
+			optinos:
+			-name pattern 指定要查找的文件的名字,可以使用通配符
+				* 代表0个或者多个任意字符
+				? 代表一个任意字符
+				
+				*和？ 是转义字符
+						转义字符 \+字符  表示其他的意义
+						
+				如：
+					find ./ -name \*.c
+					在当前目录下面查找所有以.c结尾的文件名
+					
+			-regex pattern  以正则表达式的方式指定要查找的文件名
+				
+			-type  按照类型查找文件
+				b 块设备文件
+				f 普通文件
+				c 字符设备文件
+				p 管道文件
+				s socket文件
+				l 连接文件
+				d 目录文件
+				
+				
+				如:
+					find ./  -type f
+					在当前目录下面查找所有普通文件的文件名
+				
+			-size n[cwbkMG]  按照文件大小查找文件
+				-size 5  默认单位是 b(块)
+					c 字节
+					w word,两个字节
+					b 块 512 个字节
+					k 1024 byte
+					M 1024 k
+					G 1024 M
+					
+					
+				如:
+					find ./  -szie 5c
+					在当前目录下面查找大小为5个字节的文件名
+
+			-perm mode 按照文件的权限找到文件
+				-mode 要求文件的所有的权限位都匹配
+				如:
+					find ./  -perm -0664
+					在当前目录下面查找权限为664的文件名
+				/mode 要求文件的一个权限为匹配即可
+				如:
+					find ./  -perm /0111
+					在当前目录下面查找只要有执行权限的文件名
+
+			-newer file 
+				查找比文件file 新 的文件
+				待查找的文件的修改时间在file这个文件的后面
+				
+			-delete
+				删除找到的文件
+				
+			-exec command{} \;
+				每找到一个符合条件的文件就执行一次command命令
+				{} 代表找到的文件的文件名，找到一个文件就执行一次命令
+				如：
+					find . -name \*.c -exec ls{} \;
+					find . -name 2 -exec ./{} \;
+					
+			-exec command{} +;
+				所有文件查找完毕后，再执行command这个命令
+				{}+ 代表所有找到的文件的文件名列表
+				
+				如：
+					find . -name \*.c -exec ls {} +;
+
+			查找把这段时间所有的源文件并且打一个包
+			find /mnt/hgfs/CS19181班 -name \*.c -exec tar -zcvf xxx.tar.gz {} +
+			
+
+
+
+
+
+
+
+
