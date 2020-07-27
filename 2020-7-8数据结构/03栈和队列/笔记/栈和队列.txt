@@ -1,0 +1,236 @@
+栈和队列
+
+栈和队列都是一种特殊的线性表。
+
+1.栈(stack)
+	栈是限定在表尾进行插入或者删除的线性表。
+	栈更加重要的是一种思想
+		FILO:First In Last Out  先进后出
+		LIFO:后进先出
+		在程序设计中,经常会用到栈的这种思想:先进后出/后进先出
+		
+	栈顶(Top):进行插入和删除操作的那一端
+	栈底(Bottom):不能进行操作的那一端
+	
+	栈的实现:
+		类型的实现
+			数组(顺序栈)	
+			链表
+		实现的操作(API):
+			InitStack  		初始化一个栈(分配一个栈的空间)
+			ClearStack 		清空一个栈(把栈中的所有用户数据干掉)
+			DestroyStack 	销毁一个栈
+			StackIsEmtpy	判断栈是否为空
+			StackLength		返回栈中的元素的个数(栈的长度)
+			GetTop			获取栈顶元素,但是不出栈
+			Push			进栈操作
+			Pop				出栈
+			
+	(1).顺序栈	squence	stack	
+		使用一组地址连续的空间来存储栈中的每一个元素 “数组”
+			逻辑关系就是使用物理关系表示的
+		top:栈顶元素在栈中的下标
+			int a[100];
+			0----->99
+			99---->0
+			
+		typedef int ElemType;//栈中元素的类型		
+		#define MAX_NUM 1024  //栈中最多能够存储多少个元素
+		
+		typedef struct SqStack
+		{
+			//ElemType stack[MAX_NUM]; "静态数组"在编译的时候大小已经确定
+			ElemType *stack; //“动态数组”
+			int top;//栈顶元素在栈中的下标	
+		}SqStack;
+		
+		
+		struct SqStack s;//定义了一个顺序栈
+		s.stack = malloc(sizeof(ElemType)*MAX_NUM);
+
+		SqStack.c/SqStack.h
+		main.c
+
+	(2)链式栈
+		使用带头节点的链表实现栈
+		
+		//定义栈的数据类型
+			typedef int ElemType;
+			//栈元素数据结点
+			typedef struct node
+			{
+				ElemType data;//保存栈的元素数据
+				struct node *next,*prev;
+			}Node;
+			
+			//栈的头结点
+			typedef struct LkStack
+			{
+				Node *first; //指向栈底元素
+				Node *last; //指向栈顶元素
+				int nodeNum; //栈中的元素个数
+			}LkStack;
+		
+		//实现栈的操作
+			InitStack  		初始化一个栈(分配一个栈的空间)
+			ClearStack 		清空一个栈(把栈中的所有用户数据干掉)
+			DestroyStack 	销毁一个栈
+			StackIsEmtpy	判断栈是否为空
+			StackLength		返回栈中的元素的个数(栈的长度)
+			GetTop			获取栈顶元素,但是不出栈
+			Push			进栈操作
+			Pop				出栈
+
+	结构体访问成员有两种方法:
+		.  	取成员运算符/域操作符
+		->	指向运算符
+		
+		结构体指针(4字节)
+			->
+		
+		结构体变量(所有成员大小之和+对齐字节)
+			只有变量才有成员
+			.
+	LkStack a;//结构体变量		
+	LkStack * s=&a; //指针
+	s->first = NULL;	
+
+	(*s) //结构体变量 *s ===> *&a ==>a
+	(*s).first = NULL;
+
+	a.first = NULL;
+
+	
+	练习:
+		除K取余法
+		利用栈写一个函数,可以把十进制的数字转换成任意进制(2,8,16)的数字
+		
+		int conversion(int Num,int k)
+		{
+			
+		
+			
+		}
+	
+
+2.队列(Queue)
+
+	队列(Queue)是一种先进先出(FIFO:First In First Out)的线性表
+	它只允许在表的一端进行插入,在另一端进行删除的线性表
+	
+	队头(Rear):允许删除的一端叫做队头
+	队尾(Front):允许插入的一端叫做队尾
+	
+	队列更加重要的是一种思想“先进先出”
+	“排队”
+	
+	队列的实现:
+		数据结构的实现
+			a.顺序队列
+			b.链式队列
+		接口的实现:
+			InitQueue 		初始化一个队列(分配一个队列的空间)
+			ClearQueue 		清空一个队列(把队列中的所有用户数据干掉)
+			DestroyQueue 	销毁一个队列
+			QueueIsEmtpy	判断队列是否为空
+			QueueLength		返回队列中的元素的个数(队列的长度)
+			GetTop			获取队头元素,但是不出队列
+			Push			进队列操作
+			Pop				出队列	
+
+	(1).顺序队列
+		在“数组”的基础上增加先入先出的规则,----->队列
+		只允许在表的一端进行插入,在另一端进行删除
+		
+		用一组地址连续的空间来存储队列中的每一个元素。"环形数组"
+		定义两个下标:
+				d:下一个出队元素的下标 dequeue
+					v = Q[d++];
+				
+				e:下一个入队元素的下标 enqueue
+					Q[e++]=v;
+		
+		实现的数据类型
+			typedef int ElemType;//假设队列的元素类型为int
+			#define MAX_NUM 1024
+			
+			typedef struct SqQueue
+			{
+				//ElemType Queue[MAX_NUM]; //连续的地址空间
+				ElemType *Queue;
+				int d;//下一个出队元素的下标
+				int e;//下一个入队元素的下标
+				int num;//队列中的元素个数
+				int max_len;//Queue指向的空间能够存储的最大的元素个数
+			}SqQueue;
+		
+	(2).链式队列
+		实现为带头节点双向链表
+		把“先进先出”的规则加到带头节点双向链表
+		
+		数据类型的定义:
+			typedef int ElemType;	
+			
+			//数据结点
+			typedef struct node 
+			{
+				ElemType data;//队列中的用户数据
+				struct node *next,*prev;//指针域,保存的是队列中元素的关系
+			}Node;
+			
+			//头结点
+			typedef struct LkQueue
+			{
+				struct node *front;//指向队列的对头元素
+				struct node *rear;//指向队列的对尾元素
+				int num;//队列中的元素个数
+			}LkQueue;
+		
+		操作的实现:
+			InitQueue 		初始化一个队列(分配一个队列的空间)
+			ClearQueue 		清空一个队列(把队列中的所有用户数据干掉)
+			DestroyQueue 	销毁一个队列
+			QueueIsEmtpy	判断队列是否为空
+			QueueLength		返回队列中的元素的个数(队列的长度)
+			GetTop			获取队头元素,但是不出队列
+			Push			进队列操作
+			Pop				出队列	
+		
+	作业：
+		1.自己实现链式队列的操作
+		
+		2.对栈的操作和应用(求表达式的值)
+			表达式(字符串):1+2*3+4*5+6
+			
+			int experssion_value(char *str)
+			{
+				初始化两个栈,一个存操作数,还有一个存储操作符
+				while(*str)
+				{
+					解析出操作数,直接入栈
+					解析出运算符,分情况操作
+						如果操作符栈为空或者当前待入栈操作符优先级比栈顶操作符优先级高,则直接入栈,
+						如果当前待入栈操作符优先级比栈顶操作符优先级低,则取出两个操作数和一个操作符,运算(消耗栈顶操作符)的结果入栈.....直到当前待入栈操作符能够入栈
+					
+				}
+				while(运算符栈不为NULL)
+				{
+					取出两个操作数和一个操作符,运算(消耗栈顶操作符)的结果入栈
+				}
+				return 操作数栈的栈顶元素。
+			}
+		
+		要求:
+		最简单的版本:整数的基本四则运算
+			浮点数的基本四则运算
+			带括号的运算
+				左括号的优先级最高
+				当遇到右括号的时候一直需要匹配到栈中的左括号
+		
+		
+		
+		
+		
+		
+
+

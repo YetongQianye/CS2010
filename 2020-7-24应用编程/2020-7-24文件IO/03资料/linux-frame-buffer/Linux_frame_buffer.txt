@@ -1,0 +1,126 @@
+Linux_Frame_Buffer
+
+1.原理
+	LCD的显示
+	LCD在linux中是什么?  是文件!!!
+	如何操作LCD屏幕?
+		按照操作文件的方法操作即可
+		打开 	open
+		读写	write
+		关闭	close
+		
+	一个文件对应一个文件名:
+		LCD对应的文件名为:/dev/fb0
+		linux把LCD这种硬件设备抽象成FrameBuffer
+		FrameBuffer：帧缓冲(可以显示一帧图像)
+		
+	LCD图像的显示:一个一个像素点的显示
+	像素点:描述一个点的颜色	
+	分辨率:可视屏幕上面有多少个像素点
+	将LCD上面所有的像素点都描绘成不同的颜色,就可以组成一幅图像
+
+	颜色的组成: RGB 三原色
+	每一个基色使用一个byte表示(8bit),给基色中的每一个bit位赋值为不同的值则可以代表不同的颜色(量化  0~255 红的程度不一样)
+	请问一个基色能够表示多少种颜色? 2^8  256
+	请问三个基色能够表示多少种颜色? 2^24  1670万
+	颜色可以使用3byte表示
+	
+	LCD上面一个像素点:ARGB   A:透明度(1byte)
+	LCD上面描述一个像素点占用几个字节? 4 byte
+	如果使用一种数据类型描述颜色的话?可以使用什么数据类型？  int
+		int color;
+		给color赋值为不同的值,就表示不同的颜色
+	红色:0x00FF0000
+	绿色:0x0000FF00
+	蓝色:0x000000FF
+	白色:0x00FFFFFF
+	黑色:0x00000000
+	
+	如果要把开发板的屏幕显示为某一种颜色,是不是需要把颜色数据写入到文件中去
+	对于帧缓冲设备:
+		在内存中开辟一段空间,用来保存屏幕上面每一个像素点的颜色值,操作内存中的颜色值,就是操作像素点。
+		帧缓冲设备是linux为显示提供的一个接口,把显存抽象后的一种设备。它让上层应用程序不需要关心硬件的具体实现,上层应用只需要在显存中填上合适的颜色数据,然后帧缓冲驱动就会在屏幕对应的位置显示这个颜色。
+		
+		屏幕上面每一个像素点都对应4字节的内存(从上至下,从左至右)
+		
+	屏幕操作步骤:
+		//1.打开文件
+
+		//2.写入颜色数据
+
+		//3.关闭
+	
+	开发板的屏幕分辨率:
+		800*480
+		每一行有800个点,有480行
+	如果有一个未知大小的屏幕,怎么办?
+		
+	手动的获取屏幕的信息
+
+	ioctl
+	用来进行对文件/设备除了读写以外其他的操作
+	每一个设备的控制操作不同,这些控制操作是由具体的设备或者驱动决定的。
+	
+NAME
+       ioctl - control device
+
+SYNOPSIS
+       #include <sys/ioctl.h>
+
+       int ioctl(int fd, unsigned long request, ...);
+		fd:文件描述符,表示你要控制哪一个设备
+		request:命令号,在驱动中实现的,一般会把对设备的操作,取一个命令号,命令的具体含义由驱动决定
+		...:由第二个参数决定
+		返回值：
+			成功返回0
+			失败返回-1,同时errno被设置
+			
+	例子:
+		利用ioctl来获取屏幕的信息
+		关于帧缓冲,有两个最常用的命令号
+		FBIOGET_FSCREENINFO   	返回与帧缓冲有关的固定信息,如硬件加速...
+		FBIOGET_VSCREENINFO		返回与帧缓冲有关的可变信息,如,帧缓冲长度,宽度....
+		与这两个命令对应的有两个结构体,我们使用到的是 FBIOGET_VSCREENINFO
+		struct fb_var_screeninfo fbinfo;
+		ioctl(fd,FBIOGET_VSCREENINFO, &fbinfo); //会把屏幕的可变信息保存到fbinfo指向的结构体
+		// /usr/include/linux/fb.h
+		
+struct fb_var_screeninfo {
+	__u32 xres;			//可视屏幕的宽度,一行的像素点的个数
+	__u32 yres;		//可视屏幕的高度
+	__u32 xres_virtual;		/* virtual resolution		*/
+	__u32 yres_virtual;
+	__u32 xoffset;			/* offset from virtual to visible */
+	__u32 yoffset;			/* resolution			*/
+
+	__u32 bits_per_pixel;		/* guess what			*/
+			//每一个像素点占用的bit数量
+	__u32 grayscale;		/* 0 = color, 1 = grayscale,	*/
+					/* >1 = FOURCC			*/
+	struct fb_bitfield red;		//描述红色的信息  红色在bits_per_pixel中占用的那些位
+	struct fb_bitfield green;	/* else only length is significant */
+	struct fb_bitfield blue;
+	struct fb_bitfield transp;	//透明度信息
+	......
+}	
+
+struct fb_bitfield {
+	__u32 offset;			/* beginning of bitfield	*/
+							//颜色开始的位
+	__u32 length;			/* length of bitfield		*/
+							//颜色的长度
+	__u32 msb_right;		/* != 0 : Most significant bit is  right */ 
+};	
+		
+		
+		
+
+
+
+
+
+
+
+
+
+

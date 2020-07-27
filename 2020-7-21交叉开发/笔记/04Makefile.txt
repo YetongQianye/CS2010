@@ -1,0 +1,334 @@
+Makefile
+1.是什么
+2.能做什么
+3.怎么做
+
+目标:
+	能够写非常简单的Makefile
+	能够看得懂和修改Makefile
+	
+Makefile
+	是一种规则,make会按照这种规则去智能化的编译工程。
+	
+1.什么是Makefile
+		makefile是make的配置文件,
+		指导make如何工作(编译)
+		什么是make
+		make是一个智能化的自动编译的工程管理工具(命令),它可以根据规则(Makefile)决定在一个工程中哪些文件需要被编译,哪些先编译,哪些后编译,哪些需要重新编译,如何去编译以及链接编译后的文件。
+		sudo apt install make
+		
+		make功能这么强大,是因为makefile告诉了make如何去工作的,
+		
+		把make的规则写到makefile中,make每一次编译的时候会自动的到当前目录找makefile文件。
+		make的正常工作,是离不开makefile
+		
+		
+2.Makefile简单的格式
+	一个最简单的makefile是由一些目标和完成这个目标的“规则”组成的
+	
+	格式:
+	TARGET:PREREQUISITES
+	<tab键>RECIPE	
+	<tab键>RECIPE	
+	<tab键>RECIPE	
+	<tab键>RECIPE	
+	.....
+	
+	TARGET  目标(文件名),make要做什么
+		你的makefile的最终目的是什么
+		
+	PREREQUISITES:依赖,完成这个目标依赖的文件(也可以没有)
+		第一步看当前目标依赖的文件是否存在。
+			a.存在
+				按照RECIPE命令列表取完成目标
+			b.不存在
+				就搜索整个makefile,查找是否有以依赖文件为目标名的目标
+				如果有,则先递归的生成该目标....
+				如果没有,则报错...
+		
+		
+	RECIPE:生成该目标需要执行的命令
+		生成该目标需要执行的命令列表(可以是linux的shell命令)
+		
+	make的用法:	
+		make + 目标名字
+			如果没有加目标,则默认完成makefile中第一个目标
+			把其他目标叫做“伪目标”
+		make运行的时候会自动的到当前目录找Makefile文件
+		make -C 指定目录
+			到指定的目录中去执行makefile
+			
+		make会自动的把执行的命令打印到终端
+		
+		make 是非常智能的,能够根据文件的修改时间,去自动的判断哪一些文件需要重新编译。	
+			
+	例子:完成现实中的西红柿炒蛋
+	
+		TARGET:PREREQUISITES
+		<tab键>RECIPE	
+		<tab键>RECIPE	
+		<tab键>RECIPE	
+		<tab键>RECIPE	
+		.....
+
+		西红柿炒蛋:西红柿,蛋,锅,调料
+			放西红柿
+			放调料
+			放蛋
+			放盐
+			....
+			
+		西红柿:超市,钱
+			去买
+			
+		超市:
+			走路去
+			
+		蛋:鸡
+			等它生一个
+		鸡:
+			去偷一只
+			
+		
+3.makefile中的变量
+	makefile中可以自己定义变量,但是makefile中的变量没有类型(之间写变量名),都是字符串。
+	而且变量名可以自己随便取(一般来说也需要符合标识符的规定)
+	
+	3.1 makefile中变量的赋值
+		变量可以不在使用前定义
+		如果变量名没有定义,引用它的时候值为空
+		引用变量:
+			$(变量名)
+		
+		在makefile中给变量赋值有四种方法:
+		a.简单赋值  :=
+			简单赋值(就地赋值),不会向后展开
+			
+			B:=$(A)
+			A:=12345
+			----->
+			A 12345
+			B NULL
+
+			A:=123
+			B:=$(A)
+			C:=A
+			
+			$(A)  	123
+			$(B)	123
+			$(C)	A
+		
+			
+			
+		2.递归赋值 = 
+			会向后展开
+			A=$(D)
+			D:=abc
+			---->
+			$(A)  	abc
+			$(D)	abc
+
+			不要写出递归调用自己“死循环”
+			C=$(D)
+			D=$(C)
+			
+			
+			
+		3.追加赋值  +=
+			A:=123
+			A+=456
+			<====>
+			A:=$(A)456
+			
+			$(A)	123456
+
+		4.条件赋值  ?=
+			当变量没有定义时,我们才给他赋值
+			
+			A?=hello
+				先前A是没有定义的,所有 $(A) hello
+				
+			B:=123
+			B?=456
+			
+			$(B)  123
+			
+			
+	3.2	自动变量 系统已经帮我们定义好的变量,我们直接使用即可,已经有确定的值(特殊的含义)
+
+			$@	当前完整的目标名字
+				main:
+					echo $@      //main
+				xxxxx:
+					echo $@ 	//xxxxx
+			
+			$+	当前所有的依赖文件,以空格隔开,可能包含重复的依赖文件
+				你写到哪一个目标下面,就表示哪一个目标的依赖文件列表
+				
+				
+			$^	当前所有的依赖文件,以空格隔开,不重复的依赖文件
+				你写到哪一个目标下面,就表示哪一个目标的依赖文件列表
+
+
+			$<	第一个依赖的名字
+				main:a.c,b.c
+					gcc $<   
+							$<  <===> a.c
+		
+			$?
+				所有时间戳比目标文件晚的依赖文件,并且以空格隔开
+					生成目标后,你又重新更改了文件
+
+					
+工程中,目标main依赖于main.o a.o b.o					
+main:main.o a.o b.o
+	gcc main.o a.o b.o -o main
+	
+main.o:main.c 
+	gcc -c main.c -o main.o	
+
+a.o:a.c
+	gcc -c a.c -o a.o
+a.c:
+	touch a.c
+
+b.o:b.c
+	gcc -c b.c -o b.o
+b.c:
+	touch b.c
+			
+#伪目标
+clean
+	rm *.O			
+	rm main		
+			
+			
+=======================>			
+TARGET:=main
+CC:=gcc
+$(TARGET):main.o a.o b.o
+	$(CC) $^ -o $@
+	
+main.o:main.c 
+	$(CC) -c $^ -o $@
+
+a.o:a.c
+	$(CC) -c $^ -o $@
+a.c:
+	touch a.c
+
+b.o:b.c
+	$(CC) -c $^ -o $@
+b.c:
+	touch b.c
+			
+#伪目标
+clean
+	rm *.O			
+	rm main		
+	
+	
+上面的工程中,增加了一个c.c的文件,是不是需要重新修改makefile
+
+发现: .c --- >.o 创建的规则都是一样的,这本身也是一种规则,我们能不能创建一个默认的规则,
+		把上面所有的.c --->.o 写成一条通用的规则。
+	
+使用makefile的通配符
+	% 代表一个任意的文件名(不包含扩展名)
+	%.o  表示任意以.o结尾的文件	
+	%.c  表示任意以.c结尾的文件		
+	
+	同名的.o 依赖于同名的.c
+
+
+======>	
+	
+	
+TARGET:=main
+CC:=gcc
+$(TARGET):main.o a.o b.o
+	$(CC) $^ -o $@
+%.o:%.c
+	$(CC) -c $^ -o $@
+#伪目标
+clean
+	rm *.O			
+	rm main		
+	
+还有一个问题,make能不能自动的到指定的目录查找需要编译的文件 .c  .cpp
+	nake的内置函数
+	
+4.make的内置函数
+	4.1 makefile中允许自己定义并且调用函数
+		格式:
+			$(函数名 函数的参数列表)
+	4.2 在makefile中,调用shell命令
+		格式:
+			$(shell shell命令名 命令参数)
+		如果需要使用到shell的命令或者函数的结果
+			变量:=$(shell shell命令名 命令参数)
+			变量:=$(函数名 函数的参数列表)	
+			
+		如:
+			PWD:=$(shell pwd)
+	4.3 在makefile中,调用内置函数
+		格式:
+			$(函数名 函数的参数列表)	
+	
+		
+	wildcard:
+		文件名展开函数
+		展开所有符合wildcard的参数描述的文件名,展开的文件名之间以空格隔开
+		返回展开后的文件列表
+		
+		例子:
+		CSRCS:=$(wildcard *.c)
+		在当前目录下查找所有以.c结尾的文件名,然后赋值给CSRCS
+		
+		CPPSRCS:=$(wildcard *.cpp)
+		在当前目录下查找所有以.cpp结尾的文件名,然后赋值给CPPSRCS
+		
+		PWD:=$(shell pwd)
+		CSRCS+=$(wildcard PWD/src/*.c)
+		在当前目录下面的src目录下查找所有以.c结尾的文件名,然后追加赋值给CSRCS
+	
+	subst
+		$(subst <from>,<to>,<text>)
+		名称：字符串替换函数——subst。
+		功能：把字串<text>中的<from>字符串替换成<to>。
+		返回：函数返回被替换过后的字符串。
+		$(subst ee,EE,feet on the street)，
+		把“feet on the street”中的“ee”替换成“EE”，返回结果是“fEEt on the strEEt”。
+	
+	
+	patsubst
+		$(patsubst <pattern>,<replacement>,<text>)
+		名称：模式字符串替换函数——patsubst。
+		功能：查找<text>中的单词（单词以“空格”、“Tab”或“回车”“换行”分隔）是否符合模式<pattern>，如果匹配的话，则以<replacement>替换。这里，<pattern>可以包括通配符“%”，表示任意长度的字串。如果<replacement>中也包含“%”，那么，<replacement>中的这个“%”将是<pattern>中的那个“%”所代表的字串。（可以用“\”来转义，以“\%”来表示真实含义的“%”字符）
+		返回：函数返回被替换过后的字符串。
+	
+		$(patsubst %.c,%.o,x.c.c bar.c)
+		把字串“x.c.c bar.c”符合模式[%.c]的单词替换成[%.o]，返回结果是“x.c.o bar.o”
+		
+		
+		CSRCS:=$(wildcard *.c)
+		=====>
+		CSRCS:=main.c a.c b.c
+		
+		OBJS:=$(patsubst %.c,%.o,$(CSRCS))
+		OBJS:=main.o a.o b.o
+		把CSRCS中的所有.c文件名,变为同名的.o文件名
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		

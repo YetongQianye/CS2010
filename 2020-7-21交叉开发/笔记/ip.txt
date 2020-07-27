@@ -1,0 +1,6 @@
+#!/bin/sh
+ifconfig eth0 down
+
+ifconfig eth0 hw ether 6E:3A:C5:58:02:22
+ifconfig eth0 192.168.2.75 netmask 255.255.255.0 up
+telnetd &

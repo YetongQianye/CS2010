@@ -1,0 +1,36 @@
+以下步骤在Ubuntu14.04中成功:
+1.虚拟机联网
+	可以使用wifi,能ping通baidu即可。
+	ping www.baidu.com
+	
+2.下载ftp服务器
+	sudo apt-get intall vsftpd
+	
+3.修改ftp服务器配置文件
+	sudo vim  /etc/vsftpd.conf
+	修改大概第23行，把
+	anonymous_enable=NO
+	修改为
+	anonymous_enable=YES
+	
+	保存退出。
+4.重启ftp服务
+	sudo service vsftpd restart
+	
+5.下载至开发板
+	a.把要下载的文件放入
+	   /srv/ftp 目录下面
+	b.在开发板终端使用 wget 命名
+		如：我要下载的文件名叫做hello
+			1.把hello文件放入 /srv/ftp
+			2.wget ftp://ftp服务器IP/hello
+				我的服务器IP为192.168.1.4
+				wget ftp://192.168.1.4/hello
+	
+	
+//注意:Ubuntu18.04配置文件不需要修改,ftp的共享目录默认为家目录下面的ftpboot
+
+	
+
+
+

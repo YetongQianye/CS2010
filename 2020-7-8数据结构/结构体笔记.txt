@@ -1,0 +1,690 @@
+结构体
+计算机解决问题的方法？
+	把和问题相关的一些因素，条件，已知的东西抽象成计算机能够保存的数据，再利用一些算法，指令对抽象出来的数据进行一些计算得到结果。
+		问题域：和问题相关的一些因素，条件，已知的东西
+		解决方案域：
+			与具体解决问题的方式方法的一些算法
+			
+		问题域---->解决方案域	
+		元素,条件---->能参与运算的数据
+		
+		“人” 在解决方案域中怎么转换成数据？
+		建模:给人建立模型，该怎么用数据描述一个人
+			描述一个人，应该使用什么数据？
+			
+	学生：
+		学号 ====> int num
+		姓名 ====> char[]
+		性别 ====> char/int
+		年龄 ====> int
+		地址 ====> char[]
+		...
+		如果要描述很多很多的学生，是不是每一个学生都要定义一些描述“自己”的变量。
+		其实每一个学生都需要一组数据，也就是说需要“多个”变量才能够描述一个学生，而是那“多个”变量描述的是同一个学生。
+		
+		能不能把这些描述一个物体的多个变量组合到一起，每次需要描述这样一个物体的时候，就定义一组变量呢？
+		肯定是可以的。
+		
+		数组是把相同类型的数据组合到一起，在这里就是把不同的数据类型组合到一起。换一句话说，把多个数据类型组合成一个新的数据类型。
+		C语言运行程序员自己定义组合数据类型
+			数组
+			结构体
+			共用体
+			枚举
+			
+1 结构体
+	自定义的一组数据类型
+	2.1 结构体的定义方法
+	
+		struct 结构体名
+		{
+			成员类型1 成员变量1;
+			成员类型2 成员变量2;
+			成员类型3 成员变量3;
+			....
+			成员类型n 成员变量n;
+		};
+		
+		结构体名：要符合C语言标识符的定义
+		此处实际上是定义了一种新的数据类型：
+			struct 结构体名 ====> 新的类型的类型名
+			
+		成员类型1,成员类型2,成员类型3,成员类型n:
+			C语言合法的数据类型集合
+		成员变量1,成员变量2,成员变量3,成员变量n：
+			要符合C语言标识符的定义,标识一个成员变量的名字。
+			
+		或者：	
+		struct 结构体名
+		{
+			成员类型1 成员变量1;
+			成员类型2 成员变量2;
+			成员类型3 成员变量3;
+			....
+			成员类型n 成员变量n;
+		}结构体变量名;
+		上面在定义一种新的数据类型的同时，定义了一个新类型的变量，
+		
+		
+		例子：
+			struct student
+			{
+				int num;
+				char name[20];
+				int age;
+				float score;
+				char addr[20];
+			}zhangsan,lisi,*p;
+			
+			上面我们定义了一种新的数据类型  struct student
+			并且这个类型中包含了num,name,age,score,addr这些成员。
+			zhangsan就是新类型的一个变量的名字。
+			
+			如果利用这个新的类型定义一个变量s,如：
+			 struct student s;
+			 s这个变量中就有一个int成员一个char[]成员.....
+			 那么这些成员在内存中是如何分布的呢？
+			 
+	2.2 结构体成员的内存布局
+		先提一下，后面专门讲这个问题
+		 struct student s;
+		1.sizeof(s) == ?
+			sizeof(s) == sizeof(struct student)
+			结构体类型所占用的内存空间，是各成员变量占用的内存之和
+			(还包括一些填充对齐用的字节)
+		2.结构体各成员在内存的布局
+			以定义时出现的成员变量的次序，依次保存
+			
+	2.3结构体成员变量的引用
+		访问结构体变量中那些成员的方法
+		1.结构体变量名.成员变量名
+			struct student s;
+			struct student s1;
+			
+			s.num 就代表结构体变量s的成员变量num。
+			
+			.:域操作符
+			成员变量的使用方法和普通变量的使用方法一模一样(左值和右值)
+			
+			s.num = 1; //左值
+			b = s.num; //右值
+			
+			int *p = &(s.num);
+		
+			如果有一个结构体没有变量名怎么办？
+		struct student *p =(struct student *)malloc(sizeof(struct student));
+		
+		(*p) <===> p指向的那个结构体对象
+		(*p).num
+			
+		2.(*结构体指针).成员变量名
+			(*p).num = 1;
+			b = (*p).num;
+			有人就觉得太麻烦了，能不能不写这么多，一次性到位？
+			
+		3.结构体指针变量名->成员变量名
+			->取结构体指针对应的对象的成员
+			
+			struct student *p =(struct student *)malloc(sizeof(struct student));
+			p->num = 1;
+			b = p->num;
+			
+		struct student *p;
+		//此处还是p是一个野指针，p->num 是错误的。
+		struct student s;
+		p = &s;
+		p->num = 1;
+		s.num = 1;
+		
+		s->num= 1;//ERROR
+		p.num = 1;//ERROR
+		(*s).num=1;//ERROR
+		(*p)->num = 1;//ERROR
+		总体来说，指针变量访问指向的对象的成员用指向运算符(->)
+		结构体变量访问成员变量用域操作符(.)
+		
+	2.4定义并且初始化结构体变量的方法
+		结构体的初始化使用{}.
+		
+		struct birthday
+		{
+			int y,m,d;
+		};
+		struct student
+		{
+			int num;
+			char name[20];
+			struct birthday birth;
+			float score;
+			char addr[32];
+		};
+		
+		1.按照定义时的顺序依次初始化各成员变量，用逗号隔开
+		
+		struct student s = {
+			1,
+			"zhangsan",
+			{
+				2019,12,15
+			},
+			101,
+			"changsha"
+		};
+		
+		2.不按照定义的顺序，.成员变量名=值
+		struct student s = {
+			.name="zhangsan",
+			.num=1,
+			.birth={2019}
+		};
+		没有赋值的成员初始化为0
+		
+		3.结构体数组的初始化
+			按照数组的初始化的规则做就可以了
+			
+			a.按照数组元素的顺序依次初始化
+			struct student class[3] = 
+			{
+	 			{   		//class[0]
+					1,
+					"zhangsan",
+					{2019,1,1,},
+					100
+					
+				},
+				{			//class[1]
+					.name = "lisi",
+				},
+				{			//class[2]
+				
+				}
+			};
+			
+			b.不按数组元素的顺序初始化
+				[下标]=
+				这种方式，不同的编译器，情况或者限制不一样
+				
+				struct student class[3] = 
+					{
+						[0]={   		
+							1,
+							"zhangsan",
+							{2019,1,1,},
+							100
+							
+						},
+						[1]={			
+							.name = "lisi",
+						},
+						[2]={			
+						
+						}
+					};
+		
+		练习：
+			定义一个结构体数组，从键盘上面输入每一个结构体的内容
+			验证前面讲到的结构体的定义和使用方法。
+			
+			int main()
+			{
+				struct student class[4];
+				int i;
+				for(i=0;i<4;i++)
+				{
+					scanf("%d%s%d%d%%d%f%s",
+							&(class[i].num),
+							class[i].name, //数组名就是数组的首地址
+							&(class[i].birth.y),
+							&(class[i].birth.m),
+							&(class[i].birth.d),
+							&(class[i].score),
+							class[i].addr
+							);
+				}
+				
+			}
+			
+			
+2.共用体(联合体)
+	定义方法
+	union 共用体名
+	{
+		公共成员类型1 共用成员名1;
+		公共成员类型2 共用成员名2;
+		...
+		公共成员类型n 共用成员名n;
+	}变量名1,变量名2;
+	
+	类似于结构体。所有的成员变量共用一段内存空间。
+	与结构体最大的区别是：
+		结构体占用的内存大小是各成员变量之和
+		共用体所占用的内存大小是各成员变量最大的那个
+		内存是共用的。
+		
+		共用体同一时刻只能存储一个成员变量。
+		
+		union test
+		{
+			char a;
+			int b;
+		};
+		//上面定义了一个新的类型  union test
+		
+		成员变量a和成员变量b是共用一块内存。
+		当一个成员变量a和一个成员变量b不同时使用时，为了节省内存空间，可以考虑使用共用体。
+		
+		sizeof(union test) == 4;
+		
+		union test s;//分配了四字节的空间
+					//成员变量a和成员变量b是共用一块内存。
+					//&s.a == &s.b
+					
+		s.a = 'A';//把65放到第一个字节，其余三个字节是垃圾值
+		printf("s.b = %d\n",s.b); ???? 
+		
+		s.b = 'A';//65放到了4个字节
+		printf("s.a = %d\n",s.a); ???? 65
+		
+		s = 4
+		&s = 0xbf8831fc
+		&s.a = 0xbf8831fc
+		&s.b = 0xbf8831fc
+		s.b = -1216966591
+		s.a = 65
+	
+	假如：
+		union test
+		{
+			char a;
+			int b;
+		};
+		
+		union test s;
+		s.b = 0x01020304;
+		printf("s.a = %d",s.a); //01 04
+		
+		大端模式，小端模式
+		大端模式：内存的低地址存放数据的高字节
+		小端模式：内存的低地址存放数据的低字节
+	
+		非常重要的练习：
+			你能不能下一个小小的代码，测试一下你的机器是大端模式还是小端模式？
+			
+			union test
+			{
+				char a;
+				int b;
+			};
+			
+			int main()
+			{
+				union test s;
+				s.b = 0x01;
+				
+				if(s.a) 
+				{
+					小端
+				}else
+				{
+					大端
+				}
+			}
+		
+		
+			int main()
+			{
+				int a = 1;
+				char *p = (char *)&a;
+				if(*p)
+				{
+					小端
+				}else
+				{
+					大端
+				}
+			}
+		
+		例子：
+		union test
+		{
+			char a;
+			int b;
+		};
+		
+		union test s;	
+		s.b = 0;
+		s.a = -128;
+		s.b = ???  128
+		
+		
+		s.b = 255;
+		s.a = ??? -1
+		
+3.枚举
+	有时候一个变量的值，是一定在一个范围之内的。
+		星期(1,2,3,4,5,6,7)
+		能不能定义该类型的时候，把该类型变量的取值范围写出来呢？
+		
+	枚举：把该类型变量所有可能的值都列举出来
+	
+		定义方法：
+			enum weekday
+			{
+				MON,
+				TUE,
+				WED,
+				THU,
+				FRI,
+				SAT,
+				SUN
+			};
+			
+			上面定义了一个枚举类型
+			enum weekday
+			这个类型的变量的取值范围是MON,TUE,WED,THU,FRI,SAT,SUN
+			
+			枚举值，只是给人看的，在计算机内部还是使用整数来实现的
+			MON,TUE,WED,THU,FRI,SAT,SUN
+			实现的时候，实际上是一个整数。
+			
+			上面的字母是不能被打印的，只是给人看的。增加程序的可读性。
+			计算机内部其实还是使用整数实现的。默认第一个枚举值为0，后面的递增.
+		
+			enum weekday
+			{
+				MON,
+				TUE,
+				WED,
+				THU,
+				FRI,
+				SAT,
+				SUN
+			};
+			sizeof(enum weekday) == 4;
+		
+4.typedef
+	typedef 用来声明一个已有类型的别名(给已有的类型取一个新名字)
+	用来声明一个新的类型名，用来替换一个已有的类型。方便移植
+	
+	C51
+	Uint	//unsigned int	
+	U8		//unsigned char
+	U16
+	int8  //8位的整型  char
+	....
+	上面很多类型名字在gcc中没有，如果我有一个C51的程序想要运行到我们虚拟机上面。就会出现问题。
+	=====>
+	移植的时候，非常不方便。
+	使用   typedef  
+	如：typedef char int8
+	
+	typedef 现有的类项名 新类型名;
+	
+	typedef unsigned char uint8;
+	uint8 a; // <==> unsigned char a;
+	
+	int a; //定义了一个变量a.a是一个int类型的变量
+	在前面加上一个typedef,就变成了定义一个新类型名
+	typedef int a; //a就变成了一个新的类型名，相当于int，可以使用a去定义其他的变量
+	
+	
+	char c;//定义了一个变量c,c是一个char类型的变量
+	在前面加上一个typedef,就变成了定义一个新类型名
+	typedef char c; //c就变成了一个新的类型名，相当于char，可以使用c去定义其他的变量
+	
+	
+	int *pint;//定义了一个指针变量pint,pint是一个int*类型的变量
+	typedef int *pint;//定义了一个新类型名pint，相当于int *
+	int x;
+	pint p;
+	p = &x;
+	
+	int num[100];
+	====>相当于把变量名变成类型名，类型是原来的变量的类型
+	typedef int num[100];//定义了一个新的类型名num,相当于int[100]
+	
+	int *num[100];//int *[100] num;
+	int *num[100]
+	typedef int *num[100];//定义了一个新类型名num,相当于int*[100]
+	num a;===>int *[100] a===>int *a[100];
+	
+	
+	int (*num)[100];//int [100] * num;
+	int (*num)[100];
+	//num是一个数组指针，int [100] *指向一个有100个元素的数组
+	typedef int (*num)[100];//num就是一个型的类型名num, int [100] *
+	num a;//====>int [100] * a===>int (*a)[100] 
+	
+	typedef int num[3][4]; 
+	num a; ===> int [4][3] a;===>int a[3][4];
+	
+	void(*p)(int,float);//定义了一个函数指针变量p，指向一个返回值为void带一个int参数一个float参数的函数
+	typedef void(*p)(int,float);//p就变成了一个新类型名字
+								//相当于 void (int,float) *
+	p x;===>void (int,float) *x ===> void (*x)(int,float) 
+	
+
+	void *p(int,float);//定义了一个函数p
+	typedef void *p(int,float);//p就变成了一种类型,void *(int,float)
+	p x;==>void *(int,float) x===>void *x(int,float);
+	
+	
+	struct test
+	{
+		int a;
+		char b;
+	}T,*p;
+	//定义了一个新类型(struct test)的同时定义了一个变量T(struct test)
+	
+	typedef struct test
+	{
+		int a;
+		char b;
+	}T,*p;
+	//T就是一个新的类型名字，相当于(struct test)
+	//p就是一个新的类型名字，相当于(struct test *)
+	T t;====>struct test t;
+	p pt;===>struct test * pt;
+	pt = &t;
+	
+	
+	int *a,b;//a是int *,b是int
+	int a,*b;//a是int，b是int*
+	
+	
+	int a;
+	typedef int a;
+	定义变量时前面加上一个typedef,就变成了定义类型
+	类型名就是原来的变量名,新类型代表的类型就是原来变量的类型。
+	
+	
+	
+5.结构体字节对齐问题
+	CPU为了提高数据的访问的效率，一般会要求，任何对象的地址必须是对齐的。
+		自然对齐：
+			数据的地址是数据长度的倍数
+			如：
+				sizeof(int) == 4
+				int a;
+				&a 肯定是4的倍数，如果不是4的倍数就不是自然对齐的。
+		n-字节对齐：
+			对象的地址是n的倍数(n一般是2的x次幂)
+			如：
+				4-字节对齐，要求对象任何地址必须都是4的倍数
+				8-字节对齐，要求对象任何地址必须都是8的倍数
+
+		结构体的每一个成员变量通常会有默认的对齐方式，成员变量按照默认的对齐方式对齐(除非程序员有其他的对齐要求)。
+			struct test
+			{
+				char a;
+				short b;
+				int c;
+			};
+			
+			假如是自然对齐的：
+			struct test
+			{
+				char a; //a的地址必须是1的倍数
+				short b;//b的地址必须是2的倍数
+				int c;//c的地址必须是4的倍数
+			};
+			sizeof(struct test) = 8
+			
+			_X_ _ _ _ _ _
+		
+			假如是4字节对齐的：
+			struct test
+			{
+				char a; //a的地址必须是4的倍数
+				short b;//b的地址必须是4的倍数
+				int c;//c的地址必须是4的倍数
+			};
+
+		在32bitx86机器下面，编译器：
+			Microsoft Visual C++ 
+			Code Gear(C++)
+			DMC
+			GNU(gcc)
+			....
+			对 一个 char(1byte) 一字节对齐
+			对 一个 short(2byte) 二字节对齐
+			对 一个 int(4byte) 4字节对齐
+			对 一个 long(4byte) 4字节对齐
+			对 一个 float(4byte) 4字节对齐
+			对 一个 double(8byte) 8字节对齐 on windows
+								  4字节对齐 on linux
+								除非指定 -malign-double(8字节对齐)
+								
+			对 一个 long long(8byte) 4字节对齐
+			对 一个 long double(10byte)??? 和编译器和系统有关
+			
+			任何一个指针  4字节对齐
+			
+		以上是基本类型的对齐方式。
+		
+		结构体按照其最大的原始类型的对齐方式对齐。
+			struct test
+			{
+				char a; //a的地址必须是4的倍数
+				short b;//b的地址必须是4的倍数
+				int c;//c的地址必须是4的倍数
+			};
+			struct test 是按照int的对齐方式对齐。
+			对齐方式，会决定结构体中是否会有“空洞”
+			
+	以下例子：
+		1.
+			struct test
+			{
+				char a;
+				char b;
+				char c;
+			};
+			sizeof(struct test) = 3
+		2.	
+			struct test
+			{
+				char a;
+				short b;
+			}; //整体是2对齐
+			sizeof(struct test) = 4
+			
+		3.	
+			struct test
+			{
+				char a;
+				short b;
+				char c;
+			}; //整体是2对齐
+			sizeof(struct test) = 6
+
+
+		4.
+			struct test
+			{
+				char a;
+				short b;
+				int c;
+				char d;
+			}; //整体是4对齐
+			sizeof(struct test) = 12
+
+
+		5
+			struct test
+			{
+				char a;
+				char b;
+				int c;
+				short d;
+			};//整体是4对齐
+			sizeof(struct test) = 12
+
+
+		6.
+			struct test
+			{
+				char a;
+				char b;
+				short c;
+				int d;
+			};//整体是4对齐
+			sizeof(struct test) = 8
+
+		7.
+			struct test
+			{
+				char a;
+				double b;
+			};//整体是4对齐
+			sizeof(struct test) = 12
+
+		8.
+			struct test
+			{
+				float x; //4
+				char n[1]; //1
+			};//整体是4对齐
+			sizeof(struct test) = 8
+
+		9.
+			struct test
+			{
+				short x; 
+				char n[3];  //组合
+			};//整体是2对齐
+			sizeof(struct test) = 6
+			
+			
+		10.		
+			struct test1
+			{
+				char Date1;
+				short Date2;
+				int Date3;
+				char Date4;
+			};
+			
+			struct test
+			{
+				char s;  //s按照1字节对齐
+				struct test1 t; //t按照4字节对齐
+			};
+			sizeof(struct test) = 16
+			
+		11.	
+			struct test1
+			{
+				char Date1;
+				short Date2;
+				int Date3;
+				char Date4;
+			};
+			
+			struct test
+			{
+				struct test1 t; //t按照4字节对齐
+				char s;  //s按照1字节对齐
+			};	
+			//成员t是一个整体。
+			sizeof(struct test) = 16

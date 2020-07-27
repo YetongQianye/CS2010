@@ -1,0 +1,346 @@
+1.umask
+
+NAME
+       umask - set file mode creation mask
+		设置文件的创建掩码
+SYNOPSIS
+       #include <sys/types.h>
+       #include <sys/stat.h>
+
+       
+		umask中权限为1的bit位,在创建文件的时候不能被指定(屏蔽掉)
+		umask命令输出当前的文件掩码
+		umask
+		0022
+		 000 010 010
+		 在创建文件的时候,不能指定掩码中为1的权限位(mode = mode & (~mask))
+				000 010 010		(mask)
+				111 101 101 	(~mask)     
+			&	110 110 100		(mode)
+				110 100 100				
+				
+		 不能指定文件的S_IWGRP 和 S_IWOTH
+
+		mode_t umask(mode_t mask);
+			mask:你要指定的文件的掩码
+		返回值:
+			返回上一次的文件掩码
+			
+		如:
+			umask(0);
+
+	在linux中,每一个进程(程序)都有自己的工作路径。
+		默认在哪一个目录中运行这个程序,当前进程的工作路径就在哪里
+		如:
+			在/mnt/hgfs/CS2010/2020-7-24应用编程/2020-7-24文件IO/01系统IO/code
+			目录中运行mycp  ./mycp
+			当前进程的工作路径就在
+			/mnt/hgfs/CS2010/2020-7-24应用编程/2020-7-24文件IO/01系统IO/code
+			当你指定的文件路径是相对路径的时候  "1.txt"
+			process_working_dir/1.txt
+			
+			
+2.获取和修改当前的工作目录
+	获取:
+NAME
+       getcwd, getwd, get_current_dir_name - get current working directory
+		获取当前工作目录的绝对路径名称
+SYNOPSIS
+       #include <unistd.h>
+	   把获取到的当前工作目录的绝对路径名称保存到buf指向的内存地址(必须可用)
+		char *getwd(char *buf);
+			char *buf; //野指针
+			getwd(buf); //访问野指针--->"段错误"
+		buf:用来保存获取到的工作路径的“字符串”
+		返回值:
+			成功返回当前工作路径的首地址(buf)
+			失败返回NULL,同时errno被设置
+			
+		getwd有一个很大的BUG。
+			可能会造成内存越界
+			如果buf指向的空间不够大(当前的工作目录字符串长度超过了buf指向的空间的长度)
+			getwd就有可能会访问buf后面的内存空间,有可能会造成内存的非法访问,为了解决这个bug就有了getcwd
+			
+		char *getcwd(char *buf, size_t size);
+			buf:用来保存获取到的工作路径的“字符串”
+			size:用来说明buf指向的空间的最大可用长度,如果当前工作路径字符串长度大于size-1,
+				这个函数就会报错,并且把错误码设置为:ERANGE
+			返回值:
+			成功返回当前工作路径的首地址(buf)
+			失败返回NULL,同时errno被设置	
+				
+		char *get_current_dir_name(void);
+		也是用来获取当前进程的工作路径的,只不过,这个函数不需要你给定内存空间,会自动的malloc足够长的空间来保存当前进程的工作路径,并且把malloc的首地址返回
+		为了防止内存泄漏,调用者使用完后,应该free这个空间
+		
+		返回值:
+			成功返回当前工作路径的首地址(malloc的空间的地址)
+			失败返回NULL,同时errno被设置
+		
+		char *p = (char *)get_current_dir_name();
+		if(p == NULL)
+		{
+			perror("get_current_dir_name error");
+			return -1;
+		}
+		printf("PATH = %s\n",p);
+		free(p);
+
+	修改:
+	改变进程的工作路径
+	chdir
+	fchdir
+	
+NAME
+       chdir, fchdir - change working directory
+		改变进程的工作路径
+SYNOPSIS
+       #include <unistd.h>
+
+       int chdir(const char *path);
+		path:要切换的工作路径的目录字符串
+		chdir("/home/china");
+		
+       int fchdir(int fd);	
+		fd:文件描述符,切换前要先打开这个文件
+		int fd = open("/home/china",O_RDONLY);
+		fchdir(fd);
+		
+		返回值:
+			成功返回0
+			失败返回-1,同时errno被设置
+	
+	
+3.文件截短
+	truncate	
+	
+NAME
+       truncate, ftruncate - truncate a file to a specified length
+		用来把文件截短到一个特殊的长度
+SYNOPSIS
+       #include <unistd.h>
+       #include <sys/types.h>
+
+       int truncate(const char *path, off_t length);
+	   path:要截短的文件的路径名
+	   length:截短后的文件的内容的长度
+       int ftruncate(int fd, off_t length);
+		fd:要截短的文件,先使用open打开
+	   length:截短后的文件的内容的长度
+	
+		length < 原来的长度
+			截短
+		length > 原来的长度
+			“留空洞”(lseek)
+		返回值:
+			成功返回0
+			失败返回-1,同时errno被设置	
+	1.	length < 原来的长度
+		原来的文件的截短后的内容还能不能看到?
+			不能,
+		会不会改变文件的大小?
+			会
+	2. 	length > 原来的长度
+		文件的大小会不会改变?
+			会,会改变为指定的长度
+		文件后面增加的内容是什么?
+			undefined,空洞的内容是未定义的
+			
+4.删除一个文件
+	unlink  删除一个普通文件
+	rmdir 	删除一个空目录
+	
+	remove 用来删除一个普通文件或者一个空目录
+		remove 用来删除一个普通文件  --->unlink
+		remove 用来删除一个空目录  --->rmdir
+			
+NAME
+       unlink- delete a name and possibly the file it refers to
+
+SYNOPSIS
+       #include <unistd.h>
+       int unlink(const char *pathname);
+		pathname:要删除的文件的路径名
+		返回值:
+			成功返回0
+			失败返回-1,同时errno被设置
+		unlink(删除一个文件),仅仅是把要删除的文件对应的inode删除(仅仅是做了一个标记,表示这个inode未被使用)
+		======>
+		删除一个文件仅仅是把文件对应的inode中的硬连接数减一,当硬连接数量为0的时候,表示inode未被使用。
+			ln  
+			硬链接:原理是多个名字对应一个inode
+			软连接(ln -s) 软连接有单独的文件名
+				软连接的文件内容是被连接的文件的文件名
+			
+NAME
+       rmdir - delete a directory
+		删除一个空目录
+SYNOPSIS
+       #include <unistd.h>
+       int rmdir(const char *pathname);	
+			
+NAME
+       remove - remove a file or directory
+
+SYNOPSIS
+       #include <stdio.h>
+
+       int remove(const char *pathname);
+
+DESCRIPTION
+       remove() deletes a name from the filesystem.  It calls unlink(2) for files, and rmdir(2) for directories.
+
+
+5.创建一个文件或目录
+		文件:create/open
+		目录:mkdir
+		
+		
+6.获取文件的属性 stat
+
+NAME
+       stat, fstat, lstat, fstatat - get file status
+		获取文件属性
+SYNOPSIS
+       #include <sys/types.h>
+       #include <sys/stat.h>
+       #include <unistd.h>
+
+       int stat(const char *pathname, struct stat *statbuf);
+       int fstat(int fd, struct stat *statbuf);
+       int lstat(const char *pathname, struct stat *statbuf);
+		stat是用来获取pathname指定的文件的属性信息的,把获取到的属性保存到buf指向的结构体中(buf必须指向一个可以的空间)
+		pathname:要获取属性的文件路径名
+		statbuf:指向的结构体用来保存获取到的信息
+		
+		返回值
+			成功返回0
+			失败返回-1,同时errno被设置
+			
+		stat这个函数获取属性只需要提供文件名,不需要打开文件
+		fstat这个函数获取文件的信息,需要的是文件的文件描述符,所以需要事先打开这个文件
+		
+		fd:要获取属性的文件的文件描述符
+		statbuf:指向的结构体用来保存获取到的信息
+		返回值
+			成功返回0
+			失败返回-1,同时errno被设置	
+			
+		lstat的功能与stat类似,只不过,当pathname是一个符号连接的时候,lstat获取的是符号连接本身的属性信息,而stat是获取符号链接指向的那个文件的属性信息
+		pathname:要获取属性的文件路径名
+		statbuf:指向的结构体用来保存获取到的信息
+		
+		返回值
+			成功返回0
+			失败返回-1,同时errno被设置
+		
+		文件属性,实际上是保存到一个结构体中的
+		在linux下面,使用一个struct stat的结构体去保存一个文件的状态或者属性信息:
+		
+ struct stat {
+	   dev_t     st_dev;         /* ID of device containing file */
+			//容纳该文件的设备的设备号,文件存储在哪一个设备上面
+	   ino_t     st_ino;         /* Inode number */
+			//该文件的inode编号
+	   mode_t    st_mode;        /* File type and mode */
+			//该文件的类型和权限信息
+			st_mode 包含了文件的类型和权限信息,使用位域实现,可以使用下面的宏取解析它:
+			
+			struct stat st;
+			stat("1.txt",&st);//把1.txt的属性存储到st表示的结构体中
+			st.st_mode 保存了类型和权限信息
+			
+				S_ISREG(st.st_mode)  is it a regular file?
+					为真则表示该文件为普通文件  -
+				S_ISDIR(st.st_mode)  directory?
+					为真则表示该文件为目录文件  d
+				S_ISCHR(st.st_mode)  character device?
+					为真则表示该文件为字符设备文件  c
+				S_ISBLK(st.st_mode)  block device?
+					为真则表示该文件为块设备文件	b
+				S_ISFIFO(st.st_mode) FIFO (named pipe)?
+					为真则表示该文件为管道文件		p
+				S_ISLNK(st.st_mode)  symbolic link?  (Not in POSIX.1-1996.)
+					为真则表示该文件为符号链接文件	l
+				S_ISSOCK(st.st_mode) socket?  (Not in POSIX.1-1996.)
+					为真则表示该文件为socket文件  s
+				
+				可以使用下面的实例代码去解析权限信息:
+				if(st.st_mode & S_IRUSR)
+				{
+					//user 有read的权限
+				}else
+				{
+					//user 没有有read的权限
+				}
+				S_ISUID     04000   set-user-ID bit
+				S_ISGID     02000   set-group-ID bit (see below)
+				S_ISVTX     01000   sticky bit (see below)
+				
+				S_IRWXU     00700   owner has read, write, and execute permission
+				S_IRUSR     00400   owner has read permission
+				S_IWUSR     00200   owner has write permission
+				S_IXUSR     00100   owner has execute permission
+
+				S_IRWXG     00070   group has read, write, and execute permission
+				S_IRGRP     00040   group has read permission
+				S_IWGRP     00020   group has write permission
+				S_IXGRP     00010   group has execute permission
+
+				S_IRWXO     00007   others (not in group) have read,  write,  and
+							   execute permission
+				S_IROTH     00004   others have read permission
+				S_IWOTH     00002   others have write permission
+				S_IXOTH     00001   others have execute permission
+	   nlink_t   st_nlink;       /* Number of hard links */
+			//该文件的硬链接数量
+	   uid_t     st_uid;         /* User ID of owner */
+			//文件的所有者ID
+	   gid_t     st_gid;         /* Group ID of owner */
+			//文件的组ID
+	   dev_t     st_rdev;        /* Device ID (if special file) */
+			//设备号(如果该文件是一个设备文件)
+	   off_t     st_size;        /* Total size, in bytes */
+			//文件的内容大小
+				普通文件:文件的内容大小
+				符号连接文件:指向的文件的文件名字大小
+	   blksize_t st_blksize;     /* Block size for filesystem I/O */
+			//块大小(与具体的硬件设备有关)
+	   blkcnt_t  st_blocks;      /* Numbe	r of 512B blocks allocated */
+			//该文件占用多少块(512字节为一块)
+	   /* Since Linux 2.6, the kernel supports nanosecond
+		  precision for the following timestamp fields.
+		  For the details before Linux 2.6, see NOTES. */		
+		struct timespec st_atim;  /* Time of last access */
+				最后访问时间
+		struct timespec st_mtim;  /* Time of last modification */
+				最后修改时间(文件内容)
+		struct timespec st_ctim;  /* Time of last status change */
+				最后修改时间(文件的属性--inode)
+				
+		#define st_atime st_atim.tv_sec      /* Backward compatibility */
+		#define st_mtime st_mtim.tv_sec
+		#define st_ctime st_ctim.tv_sec
+   };
+		
+	   
+	   
+	   
+	   
+作业:
+	1.练习使用今天所有的API函数
+	2.利用stat实现一个类似于 ls -l 是功能
+	   myls.c  
+	   ./myls 1.txt  
+	3.写一个函数能够在屏幕上指定的位置显示一个指定大小的矩形
+	4.运行程序,在屏幕上显示一个矩形,2s后,在屏幕上显示一个圆形	
+	   
+	   
+	   
+	   
+	   
+	   
+	   
+	   
+	   
+	   

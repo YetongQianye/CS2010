@@ -1,0 +1,269 @@
+linux有一个设计理念
+	Everything is a File in linux/unix
+	linux下一切皆文件
+	在linux下面,操作任何东西,其实都是在操作文件
+	或者说,在linux下面,操作任何东西,都是通过文件的接口去操作的
+	在linux下面,鼠标,键盘,......都是文件
+	
+系统IO
+	系统对文件的操作接口
+
+	文件系统:用来存储,组织,管理文件的一套方法,协议。
+		NTFS  FAT32  
+		EXT3  EXT4
+		exFAT
+	
+	文件:
+		文件的属性 i-node(i结点) 唯一的标识一个文件的存在与否
+		文件的内容
+		一个文件可以没有内容,但是一定有Inode
+		
+		inode:修改时间,作者,大小,(文件名).......
+		
+	linux系统对文件的组织方式:
+		看图
+	
+		硬件:
+			inode----->文件的内容
+			stat file可以查看文件的属性内容
+		
+		linux内核中:
+			struct inode{}
+			用来描述一个文件的物理inode信息,系统识别到一个文件的存在,就会为它创建一个struct inode,一个文件只会对应一个struct inode
+			
+			struct file{}	
+			用来描述一个已经打开的文件:
+				文件状态标记(如:O_RDONLY,O_WRONLY....)
+				文件的偏移量(类似于“光标”)
+				struct inode *  指向内核中的struct inode
+			每一个打开的文件都会对应一个struct file
+			一个文件可以被多个进程打开
+			一个进程也可以同时打开多个文件
+				
+			linux为了屏蔽文件的操作的具体细节,会为每一个进程创建一个“进程文件表项”
+			保存该进程打开的所有文件struct file *
+				struct file *的数组(指针数组)
+				0  	struct file * --> struct inode *-->struct inode-->硬件inode-->内容
+				1	struct file * --> struct inode *-->struct inode-->硬件inode-->内容
+				2	struct file * --> struct inode *-->struct inode-->硬件inode-->内容
+				3	struct file * --> struct inode *-->struct inode-->硬件inode-->内容
+				4	struct file * --> struct inode *-->struct inode-->硬件inode-->内容
+				...
+			APP操作文件只需要知道操作的是哪一个文件即可“文件描述符”
+			linux提供了一套接口:
+				fd = open()
+					打开一个指定的文件,返回“进程文件表项”的下标
+					int "文件描述符"(本质是下标)
+					在linux下面,用来描述一个已经打开的文件,每一个打开的文件都有一个唯一对应的id(文件描述符),后续对文件的操作,都是通过文件描述符来进行的
+					read(fd)
+					write(fd)
+					close(fd)
+				
+	linux中提供的这些操作文件的接口函数(如:open,read,write...)我们称为“系统IO”
+	系统IO:操作系统提供给应用程序对文件的操作接口	
+			
+
+2.linux中“系统IO”的使用
+	注意:linux系统IO最好不要在共享文件夹中实验.
+	
+	
+	1.打开文件  open
+		man -a open    		a:all
+NAME
+       open, openat, creat - open and possibly create a file
+		打开或者创建一个文件	
+SYNOPSIS
+       #include <sys/types.h>
+       #include <sys/stat.h>
+       #include <fcntl.h>
+
+       int open(const char *pathname, int flags);
+       int open(const char *pathname, int flags, mode_t mode);
+	   int creat(const char *pathname, mode_t mode);  //创建文件
+	   pathname:要打开或者创建的文件的文件名,带路径(如果不带路径,就表示在当前文件夹)
+	   
+	   flags:打开文件的标记
+			O_RDONLY   	read only  只读
+			O_WRONLY	write only	只写
+			O_RDWR		read and write 读写
+			以上三个标记只能任选一个(文件的打开方式)
+			O_APPEND :追加标记,打开文件后,文件的偏移量在文件的末尾。
+					默认情况下,读和写的偏移量(光标)在文件的开头
+				
+			O_CREAT：创建标记,如果文件不存在,则创建它
+			O_EXCL:测试标记,该标记一般和O_CREAT配合使用,用来测试文件是否存在
+				O_CREAT  如此存在,则打开,如果文件不存在,则创建它  
+				O_CREAT | O_EXCL 如此存在,则open会失败,并且把errno设置为EEXIST,表示文件已经存在
+			O_TRUNC: truncate 截短,在打开文件的时候,把文件内容清除	
+			O_NONBLOCK: 非阻塞(等待)模式打开
+					如果没有指定,则默认是阻塞(等待)模式打开
+					非阻塞:"不等待"
+						如果文件没有内容,read不会等待,直接返回一个错误
+						如果文件没有空间,write不会等待,直接返回一个错误
+					阻塞:"等待"
+						如果文件没有内容,read会等待,直到有内容
+						如果文件没有空间,write会等待,直到有空间	
+			....
+			多个标记使用 “|”连接(标记是使用位域实现的)
+			
+			O_RDWR | O_CREAT | O_TRUNC
+			以读写方式打开,如果不存在则创建,如果存在则截短
+
+		mode:指定创建的文件的权限,当第二个参数中存在“O_CREAT”,必须指定创建文件的权限
+			方法有两种:
+				1.使用系统定义的宏
+					R -->read
+					W -->write
+					x -->execute
+					U -->USR  所有者
+					G -->Group	组用户
+					O -->Other	其他用户
+				S_IRWXU  00700 user (file owner) has read, write, and execute permission
+				S_IRUSR  00400 user has read permission
+				S_IWUSR  00200 user has write permission
+				S_IXUSR  00100 user has execute permission
+				S_IRWXG  00070 group has read, write, and execute permission
+				S_IRGRP  00040 group has read permission
+				S_IWGRP  00020 group has write permission
+				S_IXGRP  00010 group has execute permission
+				S_IRWXO  00007 others have read, write, and execute permission
+				S_IROTH  00004 others have read permission
+				S_IWOTH  00002 others have write permission
+				S_IXOTH  00001 others have execute permission
+				
+				用户和组用户可读可写,其他用户可读
+				S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH
+				rw-rw-r--
+			  
+				2.使用八进制的数字
+				0664
+				===>
+				USR	Group	Other
+				110 110 	100
+				rw-rw-r--	
+			返回值:
+				成功打开一个文件,返回打开的文件的文件描述符(>2 && int)
+					因为操作系统会自动的为每一个进程打开三个文件:
+						标准输入文件(STDIN_FILENO)   0    	键盘
+						标准输出文件(STDOUT_FILENO)  1		终端
+						标准错误文件(STDERR_FILENO)  2		终端
+				
+				失败返回-1,同时errno 被设置
+				man errno
+				errno 是一个全局变量,进程最后出错的错误码   <errno.h>
+				perror 把错误码对应的错误字符串打印出来
+				perror("用户提示:")
+				打印的内容:
+					用户提示:系统错误码的提示信息
+					
+					
+	2.操作文件(IO)  read/write/lseek
+		读文件(把文件的内容拿出来)
+		
+NAME
+       read - read from a file descriptor
+		从一个文件描述符中读取数据
+SYNOPSIS
+       #include <unistd.h>
+		read从指定的文件描述符中读取count个字节存放到buf指向的内存空间
+       ssize_t read(int fd, void *buf, size_t count);		
+		fd:你要从哪一个文件中读取
+		buf:指针,指向一段可用的空间,表示你要把文件的内容读到哪里去
+		count:表示你要读取多少个字节
+		
+		typedef  unsigned long ssize_t   (18.04)  
+		typedef  unsigned int ssize_t   (14.04)
+
+		返回值:
+			返回实际读取到的字节的数量
+			>0  实际读取到的字节的数量(<=count)
+			=0  表示读到文件的末尾了
+			-1  表示读取失败,同时errno被设置
+		
+		注意:
+			文件的偏移量("光标位置")会由内核自动维护,一般来说,打开文件的时候,
+			offset = 0,
+			每一次成功的read/write了count个字节后,offset += count
+		
+		
+		写文件(把内容写入到文件)
+		write
+NAME
+       write - write to a file descriptor
+		
+SYNOPSIS
+       #include <unistd.h>
+		把buf指向的count个字节写入到fd表示的文件中去
+       ssize_t write(int fd, const void *buf, size_t count);
+		fd:你要写到哪一个文件中去
+		buf:你要写入的内容存储在哪一个位置
+		count:你要写入的字节数
+	   返回值:
+			返回实际写入到的字节的数量
+			>0  实际写入的字节的数量(<=count)
+			=0  表示什么也没有写入
+			-1  表示写入失败,同时errno被设置
+			
+		定位光标
+		在操作文件的时候,一定要知道光标的位置.
+		光标的位置不一定在你预想的位置(多线程编程)
+		
+		lseek
+NAME
+       lseek - reposition read/write file offset
+		
+SYNOPSIS
+       #include <sys/types.h>
+       #include <unistd.h>
+		重新定位fd表示的文件的读写位置
+       off_t lseek(int fd, off_t offset, int whence);		
+		fd:文件描述符,表示你要对哪一个文件定位
+		offset:偏移量,具体的新位置和第三个参数结合使用
+		whence:定位方式有三种:
+			SEEK_SET   基于文件开头定位
+				新光标位置=文件开头+offset(>0)
+			SEEK_CUR   基于光标当前位置定位
+				新光标位置=文件当前光标位置+offset(可正可负)
+			SEEK_END   基于文件末尾定位
+				新光标位置=文件末尾+offset(可正可负)	
+					负:往前面偏移
+					正:往后面偏移“留空洞”
+		
+		返回值:
+			成功返回新光标离文件开头的字节数
+				可以用来测试文件大小
+				kong x = lseek(fd,0,SEEK_END);	
+			失败返回-1,同时errno被设置
+		
+		
+	3.关闭文件	close
+NAME
+       close - close a file descriptor
+
+SYNOPSIS
+       #include <unistd.h>
+
+       int close(int fd);
+
+	
+1.什么是inode？
+2.linux是如何组织文件的?
+3.文件描述符是什么
+4.实验一下基本的API函数(open read write lseek close)
+5.利用基本的API函数实现文件的复制功能
+	mycp
+	./mycp 1.txt 2.txt
+	把1.txt 复制为2.txt
+	
+	同时打开源文件和目标文件
+	while(1)
+	{
+		从源文件中读数据
+		把读到的数据写入目标文科
+	}
+
+
+
+
+
+
