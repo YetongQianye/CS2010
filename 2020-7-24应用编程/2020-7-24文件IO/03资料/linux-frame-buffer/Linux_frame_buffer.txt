@@ -113,14 +113,89 @@ struct fb_bitfield {
 };	
 		
 		
+2.上面的操作效率比较低
+	如果通过write操作显存,
+	write是系统函数,调用的时候要进行状态装换
+	用户态----->内核态
+		  <-----	
+	把显存映射到用户的内存空间,如果要操作显存就只需要操作普通的内存即可
+	不需要使用write函数了
+	
+	使用系统IO读写一个文件的时候,实际上是把文件的内容拷贝到内存或者是把内存的内容写入到硬件,有人说,能不能把文件的内容
+	直接映射到用户的地址空间,然后操作这个文件,就直接去操作映射后的内存就可以了。
+	
+	mmap:把指定的文件或者设备映射到用户的内存空间,访问内存的速度比访问硬件快很多
+NAME
+       mmap, munmap - map or unmap files or devices into memory
+		映射或者解映射设备或文件到内存中
+SYNOPSIS
+       #include <sys/mman.h>
+		mmap用来把指的文件映射到内存
+       void *mmap(void *addr, size_t length, int prot, int flags,
+                  int fd, off_t offset);
+		addr:指针,你要把文件或者设备映射到进程地址空间的哪一个位置
+			有人说,我怎么指定应该映射到哪一个地址?
+			一般人不知道,这个参数一般为NULL,表示让操作系统给我自行分配一个地址
+		length:要映射的文件的长度
+				向上取PAGE_SIZE(4096)的整数倍,在内核中,内存是以页为单位分配的
+		prot:映射的内存区域的权限(应该和打开文件时的权限一致,因为操作此区域内存实际上就是操作文件的内容)
+				PROT_READ	可读
+				PROT_WRITE	可写
+				PROT_EXCL	可执行
+				PROT_NONE  	无权限
+				PROT_READ | PROT_WRITE
+		flags:映射标志,决定映射部分的操作是否对其他进程可见
+			MAP_HARED 共享映射,对其他进程可见,对内存的会直接同步到文件
+			MAP_PRIVATE	私有映射,对其他进程不可见,对内存的不会直接同步到文件(不会影响原文件)
+		fd:你要映射哪一个文件
+		offset:偏移量,一般为0
 		
+		解映射		  
+       int munmap(void *addr, size_t length);
+		addr:解映射的首地址,一般是mmap的返回值
+		length:解映射长度
+		进程退出会自动的munmap
+		但是关闭文件,不会自动的munmap,在关闭文件前请手动的munmap
+返回值：
+		On success, mmap() returns a pointer to the mapped area.  On error, the value MAP_FAILED (that is, (void *) -1) is returned, and  errno  is
+       set to indicate the cause of the error.
+		成功返回映射后的内存的首地址
+		失败返回MAP_FAILED,同时errno被设置
+       On success, munmap() returns 0.  On failure, it returns -1, and errno is set to indicate the cause of the error (probably to EINVAL).
+		
+	LCD操作:
+		打开文件
+		
+		映射内存
+		
+		操作内存
+		
+		解映射
+		
+		关闭文件
+		
+	映射之后,屏幕上面的像素点在映射的内存中是从上至下从左至右排列的
+	int *plcd = mmap();//映射lcd到内存    每一个像素点对应4字节(int *)
+	plcd指向的是屏幕上第一个像素点(0,0)的地址,屏幕上面第二个像素点(0,1)地址为plcd+1
 
+	如果需要把第0行的第0个点显示为红色,怎么办?
+		找到像素点对应的内存地址,把0x00ff0000放到对应的内存地址
+		第0行的第0个点对应的内存地址为plcd, *plcd = 0x00ff0000
+		
+	如果需要把第0行的第1个点显示为红色,怎么办?
+		找到像素点对应的内存地址,把0x00ff0000放到对应的内存地址
+		第0行的第1个点对应的内存地址为plcd+1, *(plcd+1) = 0x00ff0000	
+	如果需要把第0行的第x个点显示为红色,怎么办?	
+		找到像素点对应的内存地址,把0x00ff0000放到对应的内存地址
+		第0行的第x个点对应的内存地址为plcd+x, *(plcd+x) = 0x00ff0000	
+	如果需要把第y行的第x个点显示为红色,怎么办?	
+		找到像素点对应的内存地址,把0x00ff0000放到对应的内存地址
+		第y行的第x个点对应的内存地址为(plcd+y*800+x), *(plcd+y*800+x) = 0x00ff0000	
 
+	======>
+	屏幕上面任何一个点都可以通过指针操作。
 
-
-
-
-
-
+	练习:
+		利用内存映射的方法,在屏幕指定的位置显示一个指定大小的矩形。
 
 

@@ -1,3 +1,5 @@
+//4.运行程序,在屏幕上显示一个矩形,2s后,在屏幕上显示一个圆形	
+
 #include<stdio.h>
 #include<errno.h>
 #include <sys/types.h>
