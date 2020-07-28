@@ -1,0 +1,150 @@
+linux有一个设计理念
+	Everything is a File in linux/unix
+	linux下一切皆文件
+	在linux下面,操作任何东西,其实都是在操作文件
+	
+	目录在linux中也是文件,我们能不能按照操作普通文件的方法去操作目录呢?
+	如果可以,目录的内容是什么呢?
+	
+	目录在linux中也是文件,也可以通过open打开(O_RDONLY)它,也会返回一个文件描述符,但是我们使用read读的时候,会报错 Is a directory
+	在linux下面,不能使用read去读取目录的内容。
+	
+	目录文件的内容到底是什么呢?
+		"目录项"
+		用来组织和管理普通文件的
+
+1.目录文件和普通文件的区别
+	在linux下面,任何一个文件的存在,都有自己的inode编号
+	普通文件需要inode
+	目录文件也需要inode
+	....
+	并且普通文件和目录文件的inode一样(都是保存文件的属性信息)
+	
+	普通文件内容就是文本本身记录的用户数据
+	目录文件的内容记录的是文件之间的组织关系(记录目录中有哪些文件)
+		可以读取目录的内容就能知道目录中有哪些文件
+		目录文件的内容叫做“目录项”
+			理解为一个简单的“excel”表格
+			记录了目录下面的文件名和inode的对应关系
+	在创建一个空目录的时候,系统会自动的为目录预留一个“目录项数组”,把该目录下面(第一层)所有的文件都记录到目录项数组中。
+
+2.目录的操作
+	(1).打开目录
+NAME
+       opendir, fdopendir - open a directory
+
+SYNOPSIS
+       #include <sys/types.h>
+       #include <dirent.h>
+
+       DIR *opendir(const char *name);
+	   name:你要打开的目录的路径名
+       DIR *fdopendir(int fd);	
+	   fd:要打开的目录的文件描述符,在调用fopendir前,先使用open打开目录
+	   
+	   返回值:
+		成功返回一个指向打开的目录的指针
+		失败返回NULL,同时errno被设置
+		
+	linux中使用DIR结构体来描述一个打开的目录,但是结构体中的具体内容不重要,只需要知道DIR类型的指针可以表示一个已经打开的目录
+		
+	(2).读目录项
+NAME
+       readdir - read a directory
+
+SYNOPSIS
+       #include <dirent.h>
+		readdir是用来从dirp指向的目录中,返回一个“目录项(struct dirent)”的指针
+		一个目录中有多少个目录项呢?
+			有多少个子文件和子文件夹就有多少目录项
+			每一次调用readdir就会返回下一个目录项的指针,直到返回NULL就表示读完了
+			
+		
+       struct dirent *readdir(DIR *dirp);	
+		dirp:指针,指向你要读的目录的指针
+		返回值:
+			成功返回一个指向目录项的指针
+			如果读到了最后会返回NULL,errno不会被设置
+			失败失败返回NULL,errno被设置
+On success, readdir() returns a pointer to a dirent structure.  (This structure may be statically allocated; do not attempt to free(3) it.)
+If the end of the directory stream is reached, NULL is returned and errno is not changed.  If an error occurs, NULL is returned  and  errno is  set appropriately.  To distinguish end of stream and from an error, set errno to zero before calling readdir() and then check the value of errno if NULL is returned.			
+	
+		In the glibc implementation, the dirent structure is defined as follows:
+	   struct dirent {
+		   ino_t          d_ino;       /* 读取到的目录项的inode编号*/
+		   off_t          d_off;       /* 目录项的偏移,读到了哪一个目录项*/
+		   unsigned short d_reclen;    /* 目录项的长度 */
+		   unsigned char  d_type;      /* 读取到的目录项指向的文件的类型,不是所有文件系统都支持的*/
+		   char           d_name[256]; /* 该目录项指向的文件名 */
+	   };		
+	该结构体的成员,只有d_ino和d_name是所有linux系统都支持的
+	如果你想要你的代码具有更好的移植性,在代码中最好只使用该结构体的d_ino和d_name
+	如果获取文件的类型呢?
+		stat()!!!!!
+	
+		
+	(3).关闭目录
+NAME
+       closedir - close a directory
+
+SYNOPSIS
+       #include <sys/types.h>
+       #include <dirent.h>
+		用来关闭一个已经打开的目录
+       int closedir(DIR *dirp);
+		dirp:指针,指向一个已经打开的目录,一般是opendir的返回值
+		
+		返回值:
+			成功返回0
+			失败返回-1,errno被设置
+
+
+作业:
+	1.打印一个目录下面所有的文件的绝对路径名(目录下面还可能有目录)
+	2.计算一个目录下面有多少个普通文件(目录下面还可能有目录)
+	3.计算一个目录的大小,假设这个目录的大小为目录下所有普通文件的大小之和(目录下面还可能有目录)
+	
+	4.给定一个目录,找出该目录下面所有的图片文件
+		.bmp
+		.jpg
+	把所有的图片文件名(绝对路径)用双向带头节点链表保存
+	如:
+		数据结点
+		struct fileNode
+		{
+			char fileName[256];
+			struct fileNode *next,*prev;
+		};
+		
+		头结点:
+		struct HeadNode
+		{
+			struct fileNode *first;
+			struct fileNode *last;
+			int NodeNum;
+		};
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
