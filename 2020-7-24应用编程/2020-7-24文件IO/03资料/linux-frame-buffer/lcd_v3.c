@@ -1,4 +1,3 @@
-//利用内存映射的方法,在屏幕指定的位置显示一个指定大小的矩形。
 #include<stdio.h>
 #include<errno.h>
 #include <sys/types.h>
@@ -11,7 +10,7 @@
 #include <sys/mman.h>
 
 //lcd.c  /lcd.h
-int *p_lcd = NULL; //全局变量,显存的首地址
+int *plcd = NULL; //全局变量,显存的首地址
 /*
 Lcd_draw_point:在指定的像素点显示一个指定的颜色
 @x:指定位置的横坐标
@@ -25,7 +24,7 @@ void Lcd_draw_point(int x,int y,int color)
 		printf("bro,you point out of the lcd!\n");
 		return;
 	}
-	*(p_lcd+800*y+x) = color;
+	*(plcd+800*y+x) = color;
 }
 
 //清屏
@@ -65,8 +64,8 @@ int main()
 		return -1;
 	}
 	//映射内存
-	p_lcd = mmap(NULL, 800*480*4, PROT_WRITE | PROT_READ,MAP_SHARED,fd, 0);
-	if(p_lcd == MAP_FAILED)
+	plcd = mmap(NULL, 800*480*4, PROT_WRITE | PROT_READ,MAP_SHARED,fd, 0);
+	if(plcd == MAP_FAILED)
 	{
 		perror("map error");
 		close(fd);
@@ -77,29 +76,11 @@ int main()
 	Lcd_draw_rect(100,100,500,100,0x000000ff);
 
 	//解映射
-	munmap(p_lcd,800*480*4);
+	munmap(plcd,800*480*4);
 	//关闭
 	close(fd);
 	return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -23,23 +23,6 @@ int main()
 	struct fb_var_screeninfo fbinfo;
 	ioctl(fd,FBIOGET_VSCREENINFO, &fbinfo); 
 	
-	//打印可视屏幕的尺寸
-	printf("resolution size:%d * %d\n",fbinfo.xres,fbinfo.yres);
-	//每一个像素点的大小
-	printf("bits_per_pixel:%d\n",fbinfo.bits_per_pixel);
-	//每一个颜色的分量
-	//透明度
-	printf("fbinfo.transp.offset = %d,fbinfo.transp.length = %d\n",
-			fbinfo.transp.offset,fbinfo.transp.length);
-	//red
-	printf("fbinfo.red.offset = %d,fbinfo.red.length = %d\n",
-			fbinfo.red.offset,fbinfo.red.length);
-	//green
-	printf("fbinfo.green.offset = %d,fbinfo.green.length = %d\n",
-			fbinfo.green.offset,fbinfo.green.length);
-	//blue
-	printf("fbinfo.blue.offset = %d,fbinfo.blue.length = %d\n",
-			fbinfo.blue.offset,fbinfo.blue.length);
 	//2.写入颜色数据
 	//800*480
 
@@ -90,9 +73,79 @@ int main()
 	return 0;
 }
 
+//函数模块化程序
+#if 0
+int fd = 0;
+void Lcd_draw_rect(int x,int y,int w,int h,int color)
+{
+	int lcd[480][800] = {0};
+	int i,j;
+	for(i=0;i<480;i++)
+	{
+		for(j=0;j<800;j++)
+		{
+			lcd[i][j] = 0x00ffffff;
+		}
+	}
+	
+	for(i=y;i<y+h;i++)
+	{
+		for(j=x;j<x+w;j++)
+		{
+			lcd[i][j] = color;
+		}
+	}
+	write(fd,lcd,800*480*4);
+}
+
+
+void Lcd_draw_r(int x,int y,int r,int color)
+{
+	int lcd[480][800] = {0};
+	int i,j;
+	for(i=0;i<480;i++)
+	{
+		for(j=0;j<800;j++)
+		{
+			lcd[i][j] = 0x00ffffff;
+		}
+	}
+	
+	for(i=y-r;i<y+r;i++)
+	{
+		for(j=x-r;j<x+r;j++)
+		{
+			if((j-x)*(j-x)+(i-y)*(i-y) <= r*r)
+			{
+				lcd[i][j] = color;
+			}
+		}
+	}
+	write(fd,lcd,800*480*4);
+}
 
 
 
+int main()
+{
+	//1.打开文件
+	fd = open("/dev/fb0",O_RDWR);
+	if(fd == -1) //如果出错
+	{
+		perror("open lcd error");
+		return -1;
+	}
+	//2.写入颜色数据
+	Lcd_draw_rect(100,100,200,40,0x0000ff00);
+	sleep(2);
+	lseek(fd,0,SEEK_SET);
+	Lcd_draw_r(400,240,200,0x00ffff00);
+	//3.关闭
+	close(fd);
+	return 0;
+}
+
+#endif
 
 
 
