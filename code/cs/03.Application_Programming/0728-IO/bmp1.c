@@ -75,7 +75,7 @@ int main()
 	//写入颜色数据(直接操作内存)
 	//把bmp文件中的像素点信息拿出来,写入到显存
 	//打开bmp图片
-	int fd_bmp = open("1.bmp",O_RDWR);
+	int fd_bmp = open("girl.bmp",O_RDWR);
 	if(fd_bmp == -1)
 	{
 		perror("open bmp error\n");
@@ -87,9 +87,9 @@ int main()
 	}
 	
 	//读取所有的像素点信息
-	char buf[400*400*3] = {0};
+	char buf[681*480*3] = {0};
 	lseek(fd_bmp,54,SEEK_SET);
-	read(fd_bmp,buf,400*400*3);
+	read(fd_bmp,buf,681*480*3);
 	
 	//关闭图片
 	close(fd_bmp);
@@ -99,9 +99,9 @@ int main()
 	char b,g,r; 
 	int color;
 	int i = 0;
-	for(y=399;y>=0;y--) //图片总共有200行
+	for(y=479;y>=0;y--) //图片总共有200行
 	{
-		for(x=0;x<400;x++)//图片每一行有200个点
+		for(x=0;x<681;x++)//图片每一行有200个点
 		{
 			//解析一个像素点
 			b = buf[i];

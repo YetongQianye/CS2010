@@ -1,0 +1,162 @@
+交叉开发
+	开发一个软件步骤:
+		编辑代码(VS,Source insight)---->编译代码(源代码--->二进制)---->运行以及调试--->
+		卖软件--->发钱--->走向人生巅峰
+		
+1.交叉开发
+		交叉编译,也是一种编译,也是把程序语言翻译成一种机器语言
+		交叉:corss-compiling
+		
+		编译环境:就是你写代码,编译代码的那一个环境(x86,ubuntu18.04)
+		运行环境:运行你的程序的机器的环境
+		
+		在PC上面,一般来说,编译环境和运行环境是相同的。
+		
+		很多很多嵌入式产品,不适合去写程序,也没有开发工具(编辑器,编译器)
+		只能在自己的PC上面写完代码,编译好代码,再下载到具体的产品上面去运行。
+		编译环境和运行环境是不相同的。(交叉开发)
+		
+		交叉编译:在一种环境(软硬件)下面去编译另一种环境运行的程序
+		在常用的x86机器上去编译一个ARM环境的程序
+			需要编译器
+			arm-linux-gcc(需要自己按照)
+			
+2.交叉编译器的安装
+	一般来说,交叉编译器都是芯片厂商提供(我们也可以自己做),你直接拿过来使用就可以了
+	1.把交叉编译工具链的压缩包,拷贝到自己的linux目录下(不要放到共享目录)
+		cp /mnt/hgfs/CS2010/2020-7-21交叉开发/资料/arm-linux-gnueabi-5.4.0.tar.xz /home/china/
+	2.解压缩到一个合适的目录
+		sudo mkdir -p /usr/local/arm-linux
+		sudo tar -xvf arm-linux-gnueabi-5.4.0.tar.xz -C /usr/local/arm-linux
+		
+	3.在解压后的目录中就有我们需要的编译器
+		
+		sudo mv  usr/local/arm/5.4.0/ /usr/local/arm-linux
+		在/usr/local/arm-linux/5.4.0/usr/bin中就有我们需要的所有编译工具
+		为了程序员使用方便,已经做好了软连接
+		
+		使用编译器编译程序:
+		/usr/local/arm-linux/5.4.0/usr/bin/arm-linux-gcc 1.c -o 1	
+
+		为什么输入ls,gcc的时候不需要加绝对路径呢?
+		因为这些程序在系统默认的路径中(PATH)
+		PATH是一个shell的环境变量
+		echo $PATH
+		/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/local/arm/5.4.0/usr/bin:/snap/bin
+		
+		我们可以把这个交叉编译工具链的路径变成默认路径的一部分(修改环境变量):
+			PATH这个环境变量保存了系统所有可执行文件的默认搜索路径
+			PATH=dir1:dir2:dir3:....
+			
+			修改方法:
+			1.临时性的(仅对当前终端有效)
+				export 导出一个环境变量
+				export PATH=$PATH:/usr/local/arm-linux/5.4.0/usr/bin
+				
+			2.对当前用户有效
+				把上面的语句写入到当前用户的配置文件
+				家目录下面的 .bashrc
+				
+			3.对所有用户有效
+				把上面的语句写入到系统的配置文件
+				/etc/profile
+				
+			4.对所有用户有效
+				把上面的语句写入到系统的环境变量文件
+				/etc/environment
+
+
+	4.可能需要给很长的名字做一个软连接“arm-linux-gcc”
+		
+	5.可以正常使用交叉编译器编译文件
+		arm-linux-gcc 1.c -o 1
+		生成的1就是可以在ARM上运行的可执行程序
+		
+2.开发板
+	开发板和PC的通信
+		串口通信  <------
+		网络通信
+		U盘
+		
+	串口工具
+		windows
+			SecureCRT
+			xshell
+			putty
+			....
+		linux
+			minicom
+			sudo apt install minicom
+			
+	串口通信 RS232 协议   4根线
+		PC				开发板(传感器)
+		
+		GND	  ------>	GND
+		VCC	  ------>	VCC
+		TXD	  ------>	RXD(recive)
+		RXD	  ------>	TXD(transfer)
+
+	串口线:
+		windows要先安装串口驱动
+		识别串口线:USB-SERIAL CH340(COM5)
+		
+		没有装好驱动的:
+		usb2.0-ser!
+		右击--->更新驱动程序---->浏览计算机以查找驱动程序软件--->选择驱动安装包(usb_com)-->下一步。
+		
+	SecureCRT:
+		连接方法
+			快速连接-->serial协议.....
+		连接成功后,就有了一个虚拟终端(ctrl+c),可以通过这个终端控制开发板
+
+		=====>
+		把自己写的程序放到开发板上面运行:
+		1.建议大家,在家目录中创建一个自己的文件夹
+			mkdir -p /home/xxxx
+			
+		2.通过串口下载文件到开发板上面运行
+				串口下载文件(xModem/yModem/zModem)
+			rx  (recive xModerm) 以xModem的方式接受一个文件
+			a.	rx 要接收的文件名    开发版就做好接收准备了  
+			b. 在控制端使用xmodem发送一个文件
+				SecureCRT---> 传输 ---->发送xmodem
+				
+				如: 开发板:rx a.out
+					SecureCRT---> 传输 ---->发送xmodem--->选择你需要发送的文件	
+		3.运行开发板上面的程序			
+			和Ubuntu一样,但是开发板没有编译环境(gcc),所以我们必须在PC上把文件编译好
+			开发板(ARM:精简指令集)和PC(X86:复杂指令集)环境不同,交叉编译
+			./a.out 
+			-/bin/sh: ./a.out: Permission denied
+			没有可执行权限
+			chmod +x a.out
+		
+			[root@GEC6818 ~/2010]#./a.out 
+			./a.out: line 10: syntax error: unexpected ")"
+			语义错误,
+			生成一个ARM能够运行的可执行程序
+			arm-linux-gcc 1.c -o 1
+			
+			
+		
+		
+		
+
+	
+1.x86和ARM的区别?
+2.shell脚本中的${},##和%%的用法.
+	file=xxx/dir1/dir2/dir3/my.file.txt
+	
+	${file#*/} 删除第一个/以及左边的字符串
+		====>
+			dir1/dir2/dir3/my.file.txt
+	${file##*/} 删除最后一个/以及左边的字符串
+		====>
+			my.file.txt
+
+
+
+
+
+
+
