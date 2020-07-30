@@ -101,6 +101,10 @@ SYNOPSIS
 
 作业:
 	1.打印一个目录下面所有的文件的绝对路径名(目录下面还可能有目录)
+		方法有两种:
+		a.递归的思路
+		b.利用队列(类似于树的层次遍历)
+	
 		void print_path(char *path)
 		{
 			//打开目录
@@ -150,6 +154,100 @@ SYNOPSIS
 			int NodeNum;
 		};
 		
+		visited_dir.h
+			函数的声明
+			void find_pic(char *dirname);
+		visited_dir.c
+			void find_pic(char *dirname)
+			{
+				//打开目录
+				while(1)
+				{
+					//读目录项
+					if(是.||..)
+					{
+						continue;
+					}
+					//合成绝对路径
+					//获取文件属性
+					if(是普通文件)
+					{
+						if(是图片文件)
+						{
+							insert_node();
+						}
+					}
+					if(是目录)
+					{
+						打印路径名
+						find_pic(filename)
+					}
+				
+				}
+				//关闭目录
+			}
+		
+		Linklist.h
+			函数的声明和类型的定义
+			数据结点
+			struct PicNode
+			{
+				char PicName[256];
+				struct PicNode *next,*prev;
+			};
+			
+			头结点:
+			struct HeadNode
+			{
+				struct PicNode *first;
+				struct PicNode *last;
+				int NodeNum;
+			};
+			
+			//创建一个链表
+			struct HeadNode *create_list();
+			
+			//插入一个元素
+			void insert_node(struct HeadNode *head,char *name);
+			
+			//打印链表
+			void print_list(struct HeadNode *head);
+			
+			//删除一个链表
+			void delete_list(struct HeadNode *head);
+		
+		Linklist.c
+			//创建一个链表
+			struct HeadNode *create_list()
+			{
+			
+			}
+			
+			//插入一个元素
+			void insert_node(struct HeadNode *head,char *name)
+			{
+				//字符串不能直接赋值
+				strcpy()
+				snprintf();
+			}
+			
+			//打印链表
+			void print_list(struct HeadNode *head)
+			{
+			
+			}
+			
+			//删除一个链表
+			void delete_list(struct HeadNode *head)
+			{
+			
+			}
+
+		main.c
+			主要的逻辑功能
+			
+		效果:
+			能够正确获取到指定目录中的所有图片的绝对路径名
 
 
 

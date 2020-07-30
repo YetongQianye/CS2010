@@ -1,0 +1,94 @@
+利用libjpeg库解压jpeg文件的步骤:
+
+1. 分配并初始化一个jpeg解压对象
+
+	struct jpeg_decompress_struct 这个结构体在libjpeg这个库中，
+	是用来保存解压一个jpeg文件所需要的信息的。
+
+	struct jpeg_error_mgr 这个结构体在libjpeg这个库中
+	是用来保存解压或压缩过程的一些出错信息的。
+
+	struct jpeg_decompress_struct dinfo; //声明一个解压的对象
+	struct jpeg_error_mgr jerr; //声明一个出错信息的对象
+	dinfo.err = jpeg_std_error(&jerr); //初始化这个出错对象
+	jpeg_create_decompress(&dinfo); //初始化dinfo这个解压对象
+
+2. 指定要解压缩的图像文件
+	
+	图像文件(jpeg文件)来源有两个:
+		2.1 一个在文件系统中(路径名)
+		2.2 在内存中(内存地址，长度)
+			打开文件,把所有的内容读取(read)到指定的内存地址
+	2.1 用标准IO去打开这个文件
+		FILE *infile;
+		infile = fopen("xxx.jpg", "r");
+		if (infile == NULL)
+		{}
+		
+		jpeg_stdio_src(&dinfo, infile); //指定要解压的图像文件
+		
+	2.2 
+		jpeg_mem_src(&dinfo, pbuf, len); 
+		//指定要解压的图像在pbuf指向的内存中，并且长度为len
+				
+				
+				
+3.	调用jpeg_read_header()获取图像信息
+	jpeg_read_header(&dinfo, TRUE);
+		
+	
+	
+4.	用于设置jpeg解压对象dinfo的一些参数。可采用默认参数
+
+
+
+5. 调用jpeg_start_decompress()启动解压过程
+		jpeg_start_decompress(&dinfo);
+		
+	调用jpeg_start_decompress函数之后，JPEG解压对象dinfo中
+	下面这几个字段(成员变量)将会比较有用：
+		dinfo.output_width: 	图像输出宽度，一行占多少个像素点
+		dinfo.output_height:	图像输出高度，占多少行
+		dinfo.output_components:  每个像素点的分量数，每个像素点占多少个字节
+								3： R G B
+								4：A R G B
+		width * height * components
+
+	在调用jpeg_start_decompress之后，往往需要为解压后的扫描线上的所有像素点分配存储空间：
+		可以每一次读取一行解压后的像素点信息(RGB)
+		开辟合适的空间,存储那一行的所有像素点的信息。
+		存一行： output_width * output_components
+
+6. 读取一行或者多行扫描线上数据并处理，通常的代码是这样子的:
+
+	unsigned char *buffer = (unsigned char *)malloc(dinfo.output_width * dinfo.output_components);
+	
+		//dinfo.output_scanline , 表示的意思是，已经扫描了多少行
+		
+		while (dinfo.output_scanline < dinfo.output_height)
+		{
+				
+			jpeg_read_scanlines(&dinfo,  //解压对象
+								&buffer,//保存解压后数据的二级指针, 
+								1 //读取多少行数据来解压
+								);	
+								//dinfo.output_scanline + 1
+		}
+	对扫描线的读取是按照从上到下的顺序进行的，也就是说图像最上方的扫描线最先被jpeg_read_scanlines()读入到存储空间中，紧接着是第二行扫描线，最后是
+	图像底边的扫描线被读入到存储空间中去。
+	
+	一行一行的把jpeg图像的信息(RGB)拿出来	
+
+7. 调用jpeg_finish_decompress()完成解压过程
+
+
+8. 调用jpeg_destroy_decompress释放jpeg解压对象dinfo
+
+
+
+
+
+
+
+
+

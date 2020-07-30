@@ -1,4 +1,4 @@
-//2.计算一个目录的大小,假设这个目录的大小为目录下所有普通文件的大小之和(目录下面还可能有目录)
+//计算一个目录下面有多少个普通文件(目录下面还可能有目录)
 #include<stdio.h>
 #include<string.h>
 #include <unistd.h>
@@ -59,7 +59,7 @@ ulong print_file_path(char *dirname)
 		if(S_ISREG(st.st_mode))
 		{
 			//printf("filename = %s\n",filename);
-			size += st.st_size;
+			size ++;
 		}else if(S_ISDIR(st.st_mode))
 		{
 			//printf("filename = %s\n",filename);
@@ -99,7 +99,7 @@ int main(int argc,char *argv[])
 	getcwd(path,128);
 	chdir(cur_path);
 	ulong s = print_file_path(path);
-	printf("size = %lu\n",s);
+	printf("num = %lu\n",s);
 	return 0;
 }
 

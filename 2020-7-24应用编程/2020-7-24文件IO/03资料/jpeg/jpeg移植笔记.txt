@@ -1,0 +1,90 @@
+jpeg(jpg)是一种国际图片压缩标准格式,
+	手机照片.
+	用jpeg算法压缩的格式。  "jpeg算法"
+	
+	libjpeg是什么呢？
+	是一个开源的第三方库，与jpeg图片的压缩和解压缩有关系,压缩和解压缩都需要使用libjpeg库。
+	
+		libjpeg的开源的库：
+			compress :压缩, 	RGB -> jpeg
+			decompress:解压缩, jpeg -> RGB
+
+学会第三方库的使用和移植:
+
+一般下载的仅仅是源代码,需要把源代码变成程序动态库或者静态库的形式。
+	目的是放到x86上面使用:gcc
+	目的是放到开发板上面使用:arm-linux-gcc
+			
+移植：把库放到开发板或者宿主机器中使用			
+libjpeg库移植及使用
+
+
+移植步骤：
+1. 解压源码
+	(不要解压在共享目录里面，共享目录是windows下面的文件系统，它不支持链接文件)
+	mkdir  ~/libjpeg
+	cp /mnt/hgfs/直播CS20194班/Linux应用编程/2020-3-24文件IO/2020-3-30项目/jpeg/jpegsrc.v8a.tar.gz /home/gec/libjpeg/  
+
+	cd  ~/libjpeg
+					
+	tar -zxvf jpegsrc.v8a.tar.gz
+	
+2.	cd jpeg-8a
+	//为你要生成的库文件创建一个保存目录
+	mkdir  /home/gec/libjpeg/arm_libs
+	
+	//配置,根据指定信息配置编译选项
+	//我们的库是需要放到开发板上面去运行的,所有在配置的时候需要指定主机架构
+	./configure --host=arm-linux --target=arm-linux --prefix=/home/gec/libjpeg/arm_libs CC=arm-linux-gcc
+				
+	自动生成			
+	=> Makefile			
+								
+3. 
+	根据Makefile 编译源代码
+	make
+
+
+4. 因为你需要安装到 /home/gec/libjpeg/arm_libs 
+	//切换到超级用户
+	sudo -s  
+	//按照
+	make install				
+				
+	
+5.所有的库都在指定的目录中	
+	/home/gec/libjpeg/arm_libs
+	因为是动态库,在编译和链接的时候都需要使用动态库	
+	libjpeg.so
+	libjpeg.so.8
+	libjpeg.so.8.0.1
+	下载到开发板的/lib目录
+	或者不放到/lib中,指定库的加载路径
+	LD_LIBRARY_PATH
+	
+	jpeg库的编译移植就完成了。
+	
+	练习:
+	把jpeg库移植完成。
+	
+	jpeg-test
+arm-linux-gcc main.c lcd.c -o jpegtest -I/home/gec/libjpeg/arm_libs/include -ljpeg -L/home/gec/libjpeg/arm_libs/lib
+	
+	作业:
+	
+	1.把关于jpeg显示的代码加入项目中。
+	2.尝试在jpeg库上面做一次二次开发。
+/*
+lcd_draw_jpg:把指定的jpg图片显示到开发板的指定的位置
+plcd:你要操作的显存的首地址
+bmpname:图片的路径名
+x0,y0:图片的显示位置坐标(显示到开发板的哪一个位置)
+返回值：
+	无
+*/
+void draw_jpg(int *plcd,char *bmpname,int x0,int y0);	
+	把自己写的功能封装成一个静态库,可以直接给项目调用
+				
+				
+				
+

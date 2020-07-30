@@ -40,7 +40,102 @@ BMP图片的显示
 		2.BMP图片的像素点的存储是从下到上,从左至右(从最后一行开始存储的)
 		
 
+	效果:
+		能够在屏幕上面显示一张bmp图片
+		
+		//打开屏幕
+		//映射显存到内存
+		
+		//直接通过指针操作屏幕(不需要write/lseek)
+		显示图片(bmp/jpg)和数据(传感器数据)
+		
+		//解映射
+		//关闭屏幕
+
+文件IO
+触摸屏  <----
+图片
+串口可以获取传感器数据(温湿度,距离,烟雾) <---
+文字的显示 <---
+jpg <----
+
+
 作业:
+	bmp.c/bmp.h
+	1.把bmp图片显示写出一个函数的形式
+	void lcd_draw_bmp()
+	{
+		//把bmp文件中的像素点信息拿出来,写入到显存
+		//打开bmp图片
+		int fd_bmp = open("1.bmp",O_RDWR);
+		if(fd_bmp == -1)
+		{
+			perror("open bmp error\n");
+			//解映射
+			munmap(plcd,800*480*4);
+			//关闭
+			close(fd);
+			close(fd_bmp);
+		}
+		
+		//读取所有的像素点信息
+		char buf[200*200*3] = {0};
+		lseek(fd_bmp,54,SEEK_SET);
+		read(fd_bmp,buf,200*200*3);
+		
+		//关闭图片
+		close(fd_bmp);
+		
+		//解析所有的像素点且显示
+		int x,y;
+		char b,g,r; 
+		int color;
+		int i = 0;
+		for(y=199;y>=0;y--) //图片总共有200行
+		{
+			for(x=0;x<200;x++)//图片每一行有200个点
+			{
+				//解析一个像素点
+				b = buf[i];
+				g = buf[i+1];
+				r = buf[i+2];
+				i+=3;
+				color = (r<<16) | (g << 8) | (b);
+				Lcd_draw_point(x,y,color);
+			}
+		}
+	}
+	
+	2.把bmp图片(24位&&一行的大小是4的倍数)显示写成一个函数的形式
+	//把名字为name的bmp图片显示到(x0,y0)的位置,图片的大小为w*h
+	void lcd_draw_bmp(int x0,int y0,int w,int h,char *name)
+	{
+	
+	}
+	
+	3.把bmp图片(24位&&一行的大小是4的倍数)显示写成一个函数的形式
+	//把名字为name的bmp图片显示到(x0,y0)的位置
+	void lcd_draw_bmp(int x0,int y0,char *name)
+	{
+		//从bmp文件的头部54个字节获取
+		read()
+	}
+	
+	
+	4.把bmp图片(任何BMP都可以(24bit || 32bit)  可以一行不是4的倍数)显示写成一个函数的形式
+	//把名字为name的bmp图片显示到(x0,y0)的位置
+	void lcd_draw_bmp(int x0,int y0,char *name)
+	{
+	
+	}
+	
+	
+	
+	
+	
+	
+	
+	
 	
 
 

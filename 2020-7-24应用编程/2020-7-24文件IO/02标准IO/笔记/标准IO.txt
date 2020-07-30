@@ -523,10 +523,41 @@ SYNOPSIS
 			...
 		写一个代码,获取stu.txt中的最高分和最高分学生的名字?
 
-
-
-
-
+		fscanf把文件的所有的内容读取出来
+			struct stu
+			{
+				int num;
+				char name[32];
+				int score;
+			};
+			
+		//struct stu   s[1024];
+		struct stu *s = malloc(sizeof(*p)*1024);
+		//打开文件流
+		FILE *fp = fopen("stu.txt","r");
+		if(fp == NULL)
+		{
+			perror("fopen error");
+			return -1;
+		}
+		
+		int i = 0;//数组下标
+		int max_i = -1;//最高分数组下标
+		int max_s = 0;//最高分
+		//当文件没有结束的时候,读取文件中的数据
+		while(!feof(fp))
+		{
+			fscanf(fp,"%d%s%d",&s[i].num,s[i].name,&s[i].score);
+			if(s[i].score > max_s)
+			{
+				max_s = s[i].score;
+				max_i = i;
+			}
+			i++;
+		}
+		//关闭文件流
+		fclose(fp);
+		printf();
 		
 			
 
