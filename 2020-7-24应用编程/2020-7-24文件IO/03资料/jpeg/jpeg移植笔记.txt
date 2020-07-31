@@ -1,4 +1,5 @@
-jpeg(jpg)是一种国际图片压缩标准格式,
+jpeg(jpg)是一种国际图片压缩标准格式,图片的后缀名一般为jpeg或者jpg.
+	非常有必要知道数据是如何读出来的。
 	手机照片.
 	用jpeg算法压缩的格式。  "jpeg算法"
 	
@@ -6,8 +7,8 @@ jpeg(jpg)是一种国际图片压缩标准格式,
 	是一个开源的第三方库，与jpeg图片的压缩和解压缩有关系,压缩和解压缩都需要使用libjpeg库。
 	
 		libjpeg的开源的库：
-			compress :压缩, 	RGB -> jpeg
-			decompress:解压缩, jpeg -> RGB
+			compress :压缩, 	RGB -> 	jpeg
+			decompress:解压缩, 	jpeg -> RGB
 
 学会第三方库的使用和移植:
 
@@ -15,7 +16,7 @@ jpeg(jpg)是一种国际图片压缩标准格式,
 	目的是放到x86上面使用:gcc
 	目的是放到开发板上面使用:arm-linux-gcc
 			
-移植：把库放到开发板或者宿主机器中使用			
+移植:把库放到开发板或者宿主机器中使用			
 libjpeg库移植及使用
 
 
@@ -23,52 +24,69 @@ libjpeg库移植及使用
 1. 解压源码
 	(不要解压在共享目录里面，共享目录是windows下面的文件系统，它不支持链接文件)
 	mkdir  ~/libjpeg
-	cp /mnt/hgfs/直播CS20194班/Linux应用编程/2020-3-24文件IO/2020-3-30项目/jpeg/jpegsrc.v8a.tar.gz /home/gec/libjpeg/  
-
+	 cp /mnt/hgfs/CS2010/2020-7-24应用编程/2020-7-24文件IO/03资料/jpeg/jpegsrc.v8a.tar.gz ~/libjpeg/
 	cd  ~/libjpeg
 					
 	tar -zxvf jpegsrc.v8a.tar.gz
-	
+		
+		ls -l
+		如果有存在文件的用户和用户组为root,请更改为china  
+		chown change owner 改变文件所有者
+			chown [R] 新的所有者:新的组 filename
+			-R:如果filename是一个目录，则递归的把该目录下所有的文件都改为指定的所有者
+			
 2.	cd jpeg-8a
-	//为你要生成的库文件创建一个保存目录
-	mkdir  /home/gec/libjpeg/arm_libs
+
+	明显不可能手动利用编译器生成库文件,得生成一个makefile--->make
 	
 	//配置,根据指定信息配置编译选项
-	//我们的库是需要放到开发板上面去运行的,所有在配置的时候需要指定主机架构
-	./configure --host=arm-linux --target=arm-linux --prefix=/home/gec/libjpeg/arm_libs CC=arm-linux-gcc
-				
+	x86: ./configure   
+		自动检测系统的信息,生成对应的Makfile
+		
+	//我们的库是需要放到开发板上面去运行的,所以在配置的时候需要指定主机架构以及其他信息
+	ARM:
+		./configure --host=arm-linux --target=arm-linux --prefix=/home/china/libjpeg/arm_libs CC=arm-linux-gcc
+			--target:目标主机结构
+			--prefix:按照路径,编译好之后,软件安装到哪一个位置
+				//为你要生成的库文件创建一个按照目录
+				 mkdir /home/china/libjpeg/arm_libs		 
 	自动生成			
 	=> Makefile			
-								
+		
+		如果找不到arm-linux-ranlib工具,但是你又存在这个工具
+		sudo -s  切换到超级用户
+		export 声明编译器的路径
+		再
+		./configure --host=arm-linux --target=arm-linux --prefix=/home/china/libjpeg/arm_libs CC=arm-linux-gcc
+	
 3. 
 	根据Makefile 编译源代码
 	make
 
 
-4. 因为你需要安装到 /home/gec/libjpeg/arm_libs 
+4. 因为你需要安装到 /home/china/libjpeg/arm_libs
 	//切换到超级用户
 	sudo -s  
-	//按照
+	//安装
 	make install				
 				
 	
 5.所有的库都在指定的目录中	
-	/home/gec/libjpeg/arm_libs
+	/home/china/libjpeg/arm_libs/lib中
 	因为是动态库,在编译和链接的时候都需要使用动态库	
 	libjpeg.so
 	libjpeg.so.8
 	libjpeg.so.8.0.1
 	下载到开发板的/lib目录
-	或者不放到/lib中,指定库的加载路径
-	LD_LIBRARY_PATH
-	
-	jpeg库的编译移植就完成了。
+	或者不放到/lib中,指定库的加载路径	LD_LIBRARY_PATH
+	jpeg库的编译移植就完成了。就可以在开发板上面使用jpeg库
 	
 	练习:
 	把jpeg库移植完成。
 	
+	编译步骤:
 	jpeg-test
-arm-linux-gcc main.c lcd.c -o jpegtest -I/home/gec/libjpeg/arm_libs/include -ljpeg -L/home/gec/libjpeg/arm_libs/lib
+arm-linux-gcc main.c lcd.c -o jpegtest -I/home/china/libjpeg/arm_libs/include -ljpeg -L/home/china/libjpeg/arm_libs/lib
 	
 	作业:
 	
