@@ -1,0 +1,37 @@
+#include<stdio.h>
+#include"lcd.h"
+char word[32] = 
+{
+	/*--  文字:  帅  --*/
+	/*--  宋体12;  此字体下对应的点阵为：宽x高=16x16   --*/
+	0x08,0x20,0x08,0x20,0x48,0x20,0x48,0x20,0x49,0xFC,0x49,0x24,0x49,0x24,0x49,0x24,
+	0x49,0x24,0x49,0x24,0x49,0x24,0x09,0x34,0x11,0x28,0x10,0x20,0x20,0x20,0x40,0x20
+};
+
+int main(int argc,char *argv[])
+{
+	//初始化屏幕
+	struct lcd_info *lcd = init_lcd();
+	//操作屏幕
+	Lcd_clear(0x00ffffff);
+	
+	int i,index;
+	for(index=0;index<32;index++)  //有32个byte
+	{
+		for(i=7;i>=0;i--)	//每一个byte有8bit
+		{
+			if(word[index]&(1<<i))
+			{
+				Lcd_draw_point((index%2)*8+(7-i),index/2,0x00ff0000);
+			}
+		}
+	}
+	
+	
+	//关闭屏幕
+	close_lcd();
+	return 0;
+}
+
+
+
