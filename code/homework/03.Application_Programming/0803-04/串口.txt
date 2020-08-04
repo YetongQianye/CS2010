@@ -1,0 +1,53 @@
+串口也是一个文件
+
+开发板有5个串口,每一个文件都对应一个文件名
+	通信串口  /dev/ttySAC0 	
+	4个外接串口(只有三个有用com2,com3,com4)
+		/dev/ttySAC1   	-----> com2	
+		/dev/ttySAC2 	-----> com3		
+		/dev/ttySAC3 	-----> com4	
+
+串口通信
+	有四根线
+	开发板					器件
+			
+	GND  接地				GND
+	VCC	 电源				VCC
+	TXD  transfer 发送		RXD
+	RXD  recive  接收		TXD
+	
+一定线不要接错了(断电接线)
+	注意:
+		不要接错
+		
+程序中串口操作步骤:
+	1.接线
+	
+	2.打开并且配置串口
+	
+	3.进行串口通信
+	linux中一切皆文件
+		发送:write
+		读取:read
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
