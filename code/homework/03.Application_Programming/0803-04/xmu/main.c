@@ -321,7 +321,78 @@ void Lcd_draw_num2(int x0,int y0,int num,int color)
 
 }
 
- 
+//显示时钟、日历
+void show_clock()
+{	 		
+	int sec = 0,min = 0,hour = 0;
+	int year = 2020,month = 8, day = 5;
+	for(sec=0;sec<=60;sec++)
+	{
+		//星期
+		Lcd_draw_rect(600,90,150,48,0x00125D7F);
+		Lcd_draw_word(600,90,wordNum1[0],48,48,0x00fe30bd);
+		Lcd_draw_word(650,90,wordNum1[1],48,48,0x00fe30bd);
+		Lcd_draw_word(700,90,wordNum[3],24,48,0x00fe30bd);
+				
+
+		//冒号及秒，分，时
+		Lcd_draw_rect(550,180,230,48,0x00125D7F);
+		Lcd_draw_num1(600,180,-1,0x00ff0000);
+
+		Lcd_draw_num1(690,180,-1,0x00ff0000);	
+
+		Lcd_draw_num1(730,180,sec,0x00ff0000);		
+			
+		Lcd_draw_num1(640,180,min,0x00ff0000);	
+		  	
+		Lcd_draw_num1(550,180,hour,0x00ff0000);		
+		 
+		
+		//年月日
+		Lcd_draw_rect(450,20,340,48,0x00125D7F);
+
+		Lcd_draw_word(560,30,wordNum2[0],32,33,0x00fe30bd);
+		Lcd_draw_word(650,30,wordNum2[1],32,33,0x00fe30bd);
+		Lcd_draw_word(750,30,wordNum2[2],32,33,0x00fe30bd);
+
+		Lcd_draw_num1(700,20,day,0x00ff0000);				
+		
+		Lcd_draw_num1(600,20,month,0x00ff0000);			 
+	 	
+		Lcd_draw_num2(450,20,year,0x00ff0000);		  
+	 
+		sleep(1);
+		if(sec==59)
+		{			
+			sec = 0;
+			min++;
+		 
+			if(min==59)
+			{
+				min = 0;
+				hour++;
+			}
+			if(hour==23)
+			{
+				hour= 0;
+				day++;
+			}
+			if(day==30)
+			{
+				day = 1;
+				month++;
+			}
+			if(month==12)
+			{
+				month = 1;
+				year++;
+			}
+
+		}		
+	}
+}
+
+//自动播放
 void auto_play(LinkedList *LPIC,struct node *p)
 {
 	printf("-------auto play ---------\n");
@@ -352,21 +423,17 @@ void auto_play(LinkedList *LPIC,struct node *p)
 			printf("jpg  %s\n",p->data);
 			lcd_draw_jpg(0,0,p->data);
 		}	
-		sleep(1);
+		sleep(3);
 	}
 }
 
-int main(int argc,char *argv[])
-{
-	//初始化屏幕
-	lcd_init();
-	//清屏
-	lcd_clear(0x0000ff00);
-	
-	//lcd_draw_bmp(50,50,"1.bmp");
+
+//显示图片，滑动可切换。
+void show_pic()
+{	 
 	//创建链表且找到指定目录中所有图片保存到链表中
 	LinkedList* LPIC = create_linklist();
-	LPIC = fun_dir_bmp("/home/cs2010/code/cs/0803",LPIC);
+	LPIC = fun_dir_bmp(".",LPIC);
 	
 	struct node *p = LPIC->first;
 	if(p == NULL) //整个目录都没有图片文件
@@ -374,7 +441,7 @@ int main(int argc,char *argv[])
 		printf("dir no pic\n");
 		//关闭
 		lcd_uninit();
-		return -1;
+		return;
 	}
 	enum drec DEC;
 	
@@ -389,13 +456,13 @@ int main(int argc,char *argv[])
 	{
 		lcd_draw_jpg(0,0,p->data);
 	}
-
 	
 	while(1)
 	{
 #ifdef DEBUG		
 		printf("%s\n",p->data);
 #endif
+		
 		DEC = get_touch();
 		if(DEC == NOT) //没有触摸，不作处理
 		{
@@ -419,6 +486,111 @@ int main(int argc,char *argv[])
 			//进入自动播放
 			auto_play(LPIC,p);
 		}
+		
+		printf("-------shou dong play ---------\n");
+		//判断一个文件是否为BMP图片
+		//如果是 返回 1，否则 返回0
+		if(isBMP(p->data))
+		{
+			printf("bmp  %s\n",p->data);
+			lcd_draw_bmp(0,0,p->data);
+		}
+		//判断一个文件是否为JPG图片
+		//如果是 返回 1，否则 返回0
+		if(isJPG(p->data))
+		{
+			printf("jpg  %s\n",p->data);
+			lcd_draw_jpg(0,0,p->data);
+		}			
+		
+	}
+
+	print_list(LPIC);
+	
+	delete_listwithhead(LPIC);
+}
+
+
+
+int main(int argc,char *argv[])
+{
+	//初始化屏幕
+	lcd_init();
+	//清屏
+	lcd_clear(0x0000ff00);
+
+	//建立进程
+	pid_t pid = fork();
+	if(pid > 0)
+	{
+		show_clock();
+	}
+	else if(pid == 0)
+	{
+	 
+		show_pic();
+		 
+	}
+
+#if 0
+	//lcd_draw_bmp(50,50,"1.bmp");
+	//创建链表且找到指定目录中所有图片保存到链表中
+	LinkedList* LPIC = create_linklist();
+	LPIC = fun_dir_bmp("/home/cs2010/code/homework/0803-04",LPIC);
+	
+	struct node *p = LPIC->first;
+	if(p == NULL) //整个目录都没有图片文件
+	{
+		printf("dir no pic\n");
+		//关闭
+		lcd_uninit();
+		return -1;
+	}
+	enum drec DEC;
+	
+	//显示一张起始图片(链表的第一张图片)
+	if(isBMP(p->data))
+	{
+		lcd_draw_bmp(0,0,p->data);
+	}
+	//判断一个文件是否为JPG图片
+	//如果是 返回 1，否则 返回0
+	if(isJPG(p->data))
+	{
+		lcd_draw_jpg(0,0,p->data);
+	}
+ 
+	while(1)
+	{
+#ifdef DEBUG		
+		printf("%s\n",p->data);
+#endif
+		
+		DEC = get_touch();
+		if(DEC == NOT) //没有触摸，不作处理
+		{
+			continue;
+		}
+		else if(DEC == LEFT)
+		{
+			//显示上一张
+			p = find_pre(LPIC,p);
+			
+		}else if(DEC == RIGHT)
+		{
+			//显示上一张
+			p = p->next;
+			if(p==NULL)
+			{
+				p = LPIC->first;
+			}
+		}else if(DEC == DOWN)
+		{
+			//进入自动播放
+			auto_play(LPIC,p);
+		}
+ 
+
 		printf("-------shou dong play ---------\n");
 		//判断一个文件是否为BMP图片
 		//如果是 返回 1，否则 返回0
@@ -434,82 +606,16 @@ int main(int argc,char *argv[])
 			printf("jpg  %s\n",p->data);
 			lcd_draw_jpg(0,0,p->data);
 		}	
+		
+		
 	}
-	
-	print_list(LPIC);
-	//星期
-	Lcd_draw_word(600,90,wordNum1[0],48,48,0x00fe30bd);
-	Lcd_draw_word(650,90,wordNum1[1],48,48,0x00fe30bd);
-	Lcd_draw_word(700,90,wordNum[2],24,48,0x00fe30bd);
-	//年月日
-	Lcd_draw_word(560,30,wordNum2[0],32,33,0x00fe30bd);
-	Lcd_draw_word(650,30,wordNum2[1],32,33,0x00fe30bd);
-	Lcd_draw_word(750,30,wordNum2[2],32,33,0x00fe30bd);
  
-		
-	int sec = 0,min = 0,hour = 0;
-	int year = 2020,month = 8, day = 4;
-	for(sec=0;sec<=60;sec++)
-	{
-
-		Lcd_draw_rect(600,180,2*24,48,0x00125D7F);
-		Lcd_draw_num1(600,180,-1,0x00ff0000);
-
-		Lcd_draw_rect(690,180,2*24,48,0x00125D7F);
-		Lcd_draw_num1(690,180,-1,0x00ff0000);		
-
-		Lcd_draw_rect(730,180,2*24,48,0x00125D7F);
-		Lcd_draw_num1(730,180,sec,0x00ff0000);		
-		
-		Lcd_draw_rect(640,180,2*24,48,0x00125D7F);
-		Lcd_draw_num1(640,180,min,0x00ff0000);	
-		 
-	 	Lcd_draw_rect(550,180,2*24,48,0x00125D7F);
-		Lcd_draw_num1(550,180,hour,0x00ff0000);		
-
-		//年月日
-		Lcd_draw_rect(700,20,2*24,48,0x00125D7F);
-		Lcd_draw_num1(700,20,day,0x00ff0000);		
-		
-		Lcd_draw_rect(600,20,2*24,48,0x00125D7F);
-		Lcd_draw_num1(600,20,month,0x00ff0000);	
-		 
-	 	Lcd_draw_rect(450,20,4*24,48,0x00125D7F);
-		Lcd_draw_num2(450,20,year,0x00ff0000);		  
-	 
-		sleep(1);
-		if(sec==59)
-		{			
-			sec = 0;
-			min++;
-		 
-			if(min==59)
-			{
-				min = 0;
-				hour++;
-			}
-			if(hour==23)
-			{
-				hour= 0;
-				day++;
-			}
-			if(day==30)
-			{
-				day = 1;
-				month++;
-			}
-			if(month==12)
-			{
-				month = 1;
-				year++;
-			}
-
-
-		}		
-	}
-	delete_listwithhead(LPIC);
-
+ 
+	print_list(LPIC);
 	
+	delete_listwithhead(LPIC);
+ 
+#endif	
 	
 	//关闭
 	lcd_uninit();

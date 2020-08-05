@@ -1,0 +1,44 @@
+制作动态库：
+1.编译
+arm-linux-gcc -shared -fpic -o libmyjpeg.so jpeg.c ../lcd.c -I /opt/arm_libs/include/ -I../
+
+2.修改makefile
+LIBS += -Lmyjpeg -lmyjpeg
+
+3.把自己的动态库放到开发板
+
+
+4.修改开发板的 环境变量
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:你自己动态库的路径
+如：
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/hmw/pic
+
+
+
+
+
+
+制作静态库：
+
+1.编译
+	 arm-linux-gcc -c jpeg.c -o jpeg.o -I/opt/arm_libs/include -I../
+	 arm-linux-ar -rc libmyjpeg.a jpeg.o ../lcd.o
+	 
+2.修改makefile
+LIBS += -Lmyjpeg -lmyjpeg
+
+3.make 生成可执行文件 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
