@@ -11,11 +11,22 @@ int main()
 	if(pid > 0)
 	{
 		printf("i am father\n");
+		while(1)
+		{
+			printf("hello\n");
+			sleep(1);
+		}
+		wait(NULL);
 		//&a
 	}else if(pid == 0)
 	{
 		printf("i am son\n");
 		//&a
+		while(1)
+		{
+			printf("word\n");
+			sleep(1);
+		}
 	}
 	return 0;
 }

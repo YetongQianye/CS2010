@@ -278,43 +278,7 @@ void Lcd_draw_num1(int x0,int y0,int num,int color)
 		Lcd_draw_word(x0,y0,wordNum[b],24,48,color);	
 	}
 	
-	 
-#if 0
-	if(a != 0)
-	{
-		Lcd_draw_word(x0,y0,wordNum[a],24,48,color);
-		Lcd_draw_word(x0+24,y0,wordNum[b],24,48,color);
-		Lcd_draw_word(x0+60,y0,wordNum[c],24,48,color);
-		Lcd_draw_word(x0+84,y0,wordNum[d],24,48,color);	
-		Lcd_draw_word(x0+120,y0,wordNum[e],24,48,color);	
-		Lcd_draw_word(x0+124,y0,wordNum[f],24,48,color);	
-	}else if(b!=0)
-	{
-		Lcd_draw_word(x0,y0,wordNum[b],24,48,color);
-		Lcd_draw_word(x0+36,y0,wordNum[c],24,48,color);
-		Lcd_draw_word(x0+60,y0,wordNum[d],24,48,color);	
-		Lcd_draw_word(x0+96,y0,wordNum[e],24,48,color);	
-		Lcd_draw_word(x0+120,y0,wordNum[f],24,48,color);	
-	}else if(c!=0)
-	{
-		Lcd_draw_word(x0,y0,wordNum[c],24,48,color);
-		Lcd_draw_word(x0+24,y0,wordNum[d],24,48,color);	
-		Lcd_draw_word(x0+60,y0,wordNum[e],24,48,color);	
-		Lcd_draw_word(x0+84,y0,wordNum[f],24,48,color);	
-	}else if(d!=0)
-	{
-		Lcd_draw_word(x0,y0,wordNum[d],24,48,color);
-		Lcd_draw_word(x0+36,y0,wordNum[e],24,48,color);	
-		Lcd_draw_word(x0+50,y0,wordNum[f],24,48,color);	 
-	}else if(e!=0)
-	{
-		Lcd_draw_word(x0,y0,wordNum[e],24,48,color);
-		Lcd_draw_word(x0+24,y0,wordNum[f],24,48,color);	
-	}else
-	{
-		Lcd_draw_word(x0,y0,wordNum[f],24,48,color);	
-	}
-#endif	
+ 	
 	
 }
 
@@ -369,81 +333,45 @@ int main(int argc,char *argv[])
 		sleep(1);
 		Lcd_draw_rect(200,200,6*24,48,0x00ffffff);
 	} */
-	//星期
-	Lcd_draw_word(600,90,wordNum1[0],48,48,0x00fe30bd);
-	Lcd_draw_word(650,90,wordNum1[1],48,48,0x00fe30bd);
-	Lcd_draw_word(700,90,wordNum[2],24,48,0x00fe30bd);
-	//年月日
-	Lcd_draw_word(560,30,wordNum2[0],32,33,0x00fe30bd);
-	Lcd_draw_word(650,30,wordNum2[1],32,33,0x00fe30bd);
-	Lcd_draw_word(750,30,wordNum2[2],32,33,0x00fe30bd);
-#if 0	 
+ 
+ 		
+		
 	int sec = 0,min = 0,hour = 0;
+	int year = 2020,month = 8, day = 5;
 	for(sec=0;sec<=60;sec++)
 	{
 
-		Lcd_draw_rect(600,100,2*24,48,0x00ffffff);
-		Lcd_draw_num1(600,100,-1,0x00ff0000);
+		//星期
+		Lcd_draw_rect(600,90,150,48,0x00125D7F);
+		Lcd_draw_word(600,90,wordNum1[0],48,48,0x00fe30bd);
+		Lcd_draw_word(650,90,wordNum1[1],48,48,0x00fe30bd);
+		Lcd_draw_word(700,90,wordNum[3],24,48,0x00fe30bd);
+				
 
-		Lcd_draw_rect(690,100,2*24,48,0x00ffffff);
-		Lcd_draw_num1(690,100,-1,0x00ff0000);		
-
-		Lcd_draw_rect(730,100,2*24,48,0x00ffffff);
-		Lcd_draw_num1(730,100,sec,0x00ff0000);		
-		
-		Lcd_draw_rect(640,100,2*24,48,0x00ffffff);
-		Lcd_draw_num1(640,100,min,0x00ff0000);	
-		 
-	 	Lcd_draw_rect(550,100,2*24,48,0x00ffffff);
-		Lcd_draw_num1(550,100,hour,0x00ff0000);		 
-	 
-		sleep(0.5);
-		if(sec==59)
-		{			
-			sec = 0;
-			min++;
-		 
-			if(min==59)
-			{
-				min = 0;
-				hour++;
-			}
-			if(hour==23)
-			{
-				hour= 0;
-			}
-		}		
-	}
-#endif		
-		
-	int sec = 0,min = 0,hour = 0;
-	int year = 2020,month = 8, day = 4;
-	for(sec=0;sec<=60;sec++)
-	{
-
-		Lcd_draw_rect(600,180,2*24,48,0x00125D7F);
+		//冒号及秒，分，时
+		Lcd_draw_rect(550,180,230,48,0x00125D7F);
 		Lcd_draw_num1(600,180,-1,0x00ff0000);
 
-		Lcd_draw_rect(690,180,2*24,48,0x00125D7F);
-		Lcd_draw_num1(690,180,-1,0x00ff0000);		
+		Lcd_draw_num1(690,180,-1,0x00ff0000);	
 
-		Lcd_draw_rect(730,180,2*24,48,0x00125D7F);
 		Lcd_draw_num1(730,180,sec,0x00ff0000);		
-		
-		Lcd_draw_rect(640,180,2*24,48,0x00125D7F);
+			
 		Lcd_draw_num1(640,180,min,0x00ff0000);	
-		 
-	 	Lcd_draw_rect(550,180,2*24,48,0x00125D7F);
+		  	
 		Lcd_draw_num1(550,180,hour,0x00ff0000);		
-
-		//年月日
-		Lcd_draw_rect(700,20,2*24,48,0x00125D7F);
-		Lcd_draw_num1(700,20,day,0x00ff0000);		
-		
-		Lcd_draw_rect(600,20,2*24,48,0x00125D7F);
-		Lcd_draw_num1(600,20,month,0x00ff0000);	
 		 
-	 	Lcd_draw_rect(450,20,4*24,48,0x00125D7F);
+		
+		//年月日
+		Lcd_draw_rect(450,20,340,48,0x00125D7F);
+
+		Lcd_draw_word(560,30,wordNum2[0],32,33,0x00fe30bd);
+		Lcd_draw_word(650,30,wordNum2[1],32,33,0x00fe30bd);
+		Lcd_draw_word(750,30,wordNum2[2],32,33,0x00fe30bd);
+
+		Lcd_draw_num1(700,20,day,0x00ff0000);				
+		
+		Lcd_draw_num1(600,20,month,0x00ff0000);			 
+	 	
 		Lcd_draw_num2(450,20,year,0x00ff0000);		  
 	 
 		sleep(1);
@@ -478,14 +406,7 @@ int main(int argc,char *argv[])
 	}
 	
 	 
-	/* 	Lcd_draw_num(300,200,sec,0x00ff0000);
-		Lcd_draw_rect(300,200,2*24,48,0x00ffffff);
-
-		Lcd_draw_num(250,200,min,0x00ff0000);
-		Lcd_draw_rect(250,200,2*24,48,0x00ffffff);
-
-		Lcd_draw_num(150,200,hour,0x00ff0000);
-		Lcd_draw_rect(150,200,2*24,48,0x00ffffff); */
+	 
 	
 
 	//关闭屏幕
