@@ -1,0 +1,219 @@
+信号(signal)
+
+1.信息基本知识
+	信号是进程间通信的一种方式,这种方式没有传输“具体数据”,只是在内核中传递了一个(整数),信号的本质就是一个整数。
+	不同的信号值(整数),代表不同的含义(OS设定好的),当然用户也可以自定义信号, 自定义的信号的含义和值由程序员来决定和解释。
+	
+	信号处置
+        每个信号都有一个默认处置方法,该处置方法决定了当收到信号时处理方法:
+        Term :默认操作是终止该进程
+        Ign  :默认操作是忽略信号
+        Core :默认操作是终止进程并生成核心文件
+        Stop :默认操作是停止该进程。
+        Cont :如果当前已停止，默认操作是继续执行该进程。
+	
+	Standard signals
+       Linux  supports  the standard signals listed below.
+	Signal(信号名) Value(值)Action(动作)   Comment
+       ──────────────────────────────────────────────────────────────────────
+       SIGHUP        1       Term    Hangup detected on controlling terminal
+                                     or death of controlling process
+					"控制终端"的挂起操作,或者是"控制终端"进程死亡时
+					依附于"控制终端"的所有进程都会收到SIGHUP信号
+									 
+       SIGINT        2       Term    Interrupt from keyboard
+					从键盘上收到的中断信号(CTRL+C)
+					CTRL+C发送一个SIGINT的信号给前端进程
+					
+       SIGQUIT       3       Core    Quit from keyboard
+					保存当前进程的上下文信息,然后终止
+					CTRL + \
+					
+       SIGILL        4       Core    Illegal Instruction
+					非法指令
+			
+       SIGABRT       6       Core    Abort signal from abort(3)
+					调用abort这个函数的时候,进程会手动此信号
+       SIGFPE        8       Core    Floating-point exception
+					浮点数例外(除0/对0去余)
+					浮点数运算异常的时候,会收到此信号
+       SIGKILL       9       Term    Kill signal
+	   SIGSTOP   17,19,23    Stop    Stop process
+					无条件终止进程,不可以修改默认操作(不可以被捕捉)
+					kill -9 进程号
+	   
+       SIGSEGV      11       Core    Invalid memory reference
+					非法的内存访问,会收到此信号(段错误)
+       SIGPIPE      13       Term    Broken pipe: write to pipe with no readers;
+					当你往一个读端关闭的管道写数据的时候,会收到此信号
+	   SIGALRM      14       Term    Timer signal from alarm(2)
+					定时信号,在进程调用alarm时,就会在“闹钟”超时的时候,产生SIGALRM信号
+       SIGTERM      15       Term    Termination signal
+					终止信号
+       SIGUSR1   30,10,16    Term    User-defined signal 1
+       SIGUSR2   31,12,17    Term    User-defined signal 2
+					用户自定义信号,由程序员自己设置
+       SIGCHLD   20,17,18    Ign     Child stopped or terminated
+					当子进程停止或者终止时,父进程会收到此信号
+       SIGCONT   19,18,25    Cont    Continue if stopped
+       SIGTSTP   18,20,24    Stop    Stop typed at terminal
+       SIGTTIN   21,21,26    Stop    Terminal input for background process
+       SIGTTOU   22,22,27    Stop    Terminal output for background process
+
+       The signals SIGKILL and SIGSTOP cannot be caught, blocked, or ignored.
+
+	进程在收到一个信号的时候,通常有三种处理方式:
+		1.捕捉信号
+			把一个信号和用户自定义的信号处理函数关联起来,那么进程在收到这个信号的时候,就会执行指定的信号处理函数
+		2.忽略该信号
+			SIGKILL和SIGTOP不能被忽略
+		3.默认行为
+			采用OS指定的行为
+2.信号的处理过程
+	通过“软中断”来实现的
+		
+	
+3.linux下面信号相关的API函数
+	1.kill 发送信号
+		NAME
+			   kill - send signal to a process
+		SYNOPSIS
+			   #include <sys/types.h>
+			   #include <signal.h>
+				kill是用来把一个指定的信号发送给一个指定的进程或者多个进程
+			   int kill(pid_t pid, int sig);	
+					pid:指定信号的接受者进程(可能是多个进程)
+						pid > 0:pid就表示接受者进程号
+						pid == 0:发送信号给调用者进程同组的所有进程
+						pid == -1:发送给系统中所有的进程(有权限发送的进程)
+						pid < -1:发送信号给组id等于pid绝对值的所有进程
+					sig:你要发送的信号值
+					
+				返回值:
+					成功返回0(至少有一个进程收到了信号)
+					失败返回-1,同时errno被设置
+						
+	2.发送信号给自己
+		raise
+		
+		NAME
+			   raise - send a signal to the caller
+				raise用来发送一个信号给调用者进程
+		SYNOPSIS
+			   #include <signal.h>
+			   int raise(int sig);
+			raise(sig) <=====> kill(getpid(),sig);
+			信号处理完毕后,raise才会返回
+			返回值:
+					成功返回0
+					失败返回非0,同时errno被设置
+			raise(11);
+			
+	3.alarm 闹钟函数
+		定时发送一个闹钟信号(SIGALRM)给调用者本身
+		"闹钟":每一个进程都有一个属于自己的“闹钟”,设定的事件到了,进程就会收到SIGALRM这个信号,但是一个进程永远只有一个闹钟生效(设置下一个闹钟的时候会取消上一个闹钟)
+			NAME
+				   alarm - set an alarm clock for delivery of a signal
+
+			SYNOPSIS
+				   #include <unistd.h>
+				   unsigned int alarm(unsigned int seconds);
+					seconds:设置“闹钟”的超时事件,单位为秒
+					如:alarm(10);//10秒后,进程就会收到SIGALRM
+					设置下一个闹钟的时候会取消上一个闹钟
+					seconds == 0 取消闹钟
+				返回值:
+					返回上一个闹钟的剩余秒数
+					一个进程同时只能有一个闹钟
+	
+	4.等待信号的到来
+		NAME
+			   pause - wait for signal
+			
+		SYNOPSIS
+			   #include <unistd.h>
+				会阻塞调用者进程,直到收到一个信号(直到一个信号处理程序执行完毕)才会继续往下运行
+			   int pause(void);
+		大部分的信号的默认行为,就是把收到信号的进程给干掉,在实际应用中,我们一般会修改默认行为(当信号发生的时候,执行指定的任务)。
+		改变信号的处理方式---->捕捉信号
+	
+4.捕捉信号
+	把具体的信号和具体的处理函数相关联
+	
+	NAME
+		   signal - ANSI C signal handling
+	SYNOPSIS
+		   #include <signal.h>
+		   
+		   typedef void (*sighandler_t)(int);
+			//定义了一个类型的别名,新的类型名字sighandler_t
+			表示的类型为函数指针(指向函数的指针)
+			指向的函数的类型应该是:无返回值带一个int类型的参数
+				void fun(int);
+				
+		   sighandler_t signal(int signum, sighandler_t handler);
+			signum:要捕捉的信号值,需要改变处理方式的信号
+			handler:新的处理方式,有三种设置方法:
+				a.自己下一个信号处理函数
+					void my_handler(int sig)
+					{
+						sig:表示收到的信号的信号值
+					}
+				b.忽略该信号
+					SIG_IGN
+				c.采用操作系统默认的处理方式
+					SIG_DFL
+			返回值:
+				成功返回上一次的处理方式(函数指针)
+				失败返回SIG_ERR,同时errno被设置
+	练习:
+		1.把刚刚的函数都实验一遍,
+		2.通常情况下,一个占用终端的进程在按CTRL+C的时候会被杀死,现在写一个代码,使得这个程序在按CTRL+c的时候杀不死。
+		3.能不能写一个简单的代码使用一些用户自定义信号。
+		
+		
+	作业:
+		利用进程和进程间的通信,完成一个视频播放器。能够播放一个指定的目录下面的所有视频文件,要实现一些基本的操作:
+			快进
+			快退
+			暂停
+			播放
+			下一个视频
+			上一个视频
+			.....
+		madplay :音频解码,播放音乐
+		mplayer:音视频解码(虚拟机中直接使用命令行按照即可,开发板中需要自己更具源代码移植)
+		
+			基本做法:
+			mplayer -slave -input file=/home/china/2010 -quiet -zoom -x 800 -y 480 奔跑吧粤嵌.mp4  &
+			
+			/home/china/2010是专门用来与mplayer进行通信的管道
+			
+			思路:
+			
+			获取指定目录中所有的视频路径名存储到链表
+			while(1)
+			{
+				fork()
+				if(父进程)
+				{
+					从键盘上获取输入的命令
+					写入到管道文件
+					
+				}else if(子进程)
+				{
+					execlp(mplayer -slave -input file=/home/china/2010 -quiet -zoom -x 800 -y 480 奔跑吧粤嵌.mp4  &);
+				}
+			}
+			
+			
+			
+			
+			
+			
+			
+		
+		
+		
+		
+
