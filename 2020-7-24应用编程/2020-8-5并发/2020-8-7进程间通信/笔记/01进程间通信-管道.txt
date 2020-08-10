@@ -87,7 +87,7 @@ IPC:internal process communication
 		fifo在pipe的基础上,给管道在文件系统中创建一个inode(就会有一个文件名),但是它的内容却是在内核中。
 		=====>
 		fifo的文件名是随文件系统的持续性(不删除就存在)
-		fifo的内容却是在内核中。随内核的持续性。
+		fifo的内容却是在内核中。fifo本身随内核的持续性。
 		fifo和pipe一样,除了fifo在文件系统中有一个文件名
 		操作fifo的方法和操作普通文件类似:
 			open

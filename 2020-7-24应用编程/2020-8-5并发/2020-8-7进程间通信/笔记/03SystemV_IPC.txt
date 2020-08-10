@@ -1,0 +1,337 @@
+System V IPC机制(msg,shm,sem)
+
+引入了三种高级的进程间通信方法:
+	消息队列
+	共享内存
+	信号量
+	
+	函数原型:
+			消息队列		共享内存		信号量
+	头文件	<sys/msg.h>		<sys/shm.h>		<sys/sem.h>
+	创建	msgget			shmget			semget
+	操作	msgctl			shmctl			semctl
+			
+	system V IPC的操作方法和原理:
+		原理:
+			就是在内核中,建立一个数据结构,并且提供了一些操作这些数据结构的接口
+		
+		操作方法:
+			1.先向内核申请一个IPC的“key”(许可证/钥匙)
+				IPC对象通过“key”来引用和访问IPC对象,所有的systemVIPC对象在内核中都有一个唯一的标识ID,在用户空间称之为“key”
+				key:唯一的标识一个IPC对象,不同的进程利用相同的“key”可以访问同一个IPC对象
+					key由用户提供的一个整数和一个文件名生成
+					
+			2.利用key创建或者打开IPC对象(msg/shm/sem)
+				不同的进程利用同一个“key”可以访问同一个IPC对象
+				msgget  创建或者打开system V消息队列
+				shmget	创建或者打开system V共享内存
+				semget	创建或者打开system V信号量
+				
+			3.操作(写/读/删除...)
+				具体的IPC对象有不同的操作方法
+				
+1.消息队列
+	本质:是内核中的一个带头结点的双向链表
+	对于消息队列,内核定义了一个头结点<sys/msg.h>
+
+
+		//消息队列的头结点,表示一个"消息队列"
+		struct msqid_ds {
+			struct ipc_perm msg_perm;  //该数据结构的r/w权限
+			struct msg *msg_first;		//指针,指向第一个没有被读取的消息
+			struct msg *msg_last;		//指针,指向最后一个没有被读取的消息
+			__kernel_time_t msg_stime;	//最后发送到消息队列的时间
+			__kernel_time_t msg_rtime;	//最后从消息队列读取消息的时间
+			__kernel_time_t msg_ctime;	//最该修改消息队列属性(头结点结构体)的时间
+			unsigned long  msg_lcbytes;	/* Reuse junk fields for 32 bit */
+			unsigned long  msg_lqbytes;	/* ditto */
+			unsigned short msg_cbytes;	/* current number of bytes on queue */
+			unsigned short msg_qnum;	//消息的个数
+			unsigned short msg_qbytes;	/* max number of bytes on queue */
+			__kernel_ipc_pid_t msg_lspid;	/* pid of last msgsnd */
+			__kernel_ipc_pid_t msg_lrpid;	/* last receive pid */
+		};
+		//数据成员大概如下
+		struct msg
+		{
+			struct msg *next,*prev;//下一个消息
+			long mtype;//消息的类型(由程序员自己解释)
+			long length;//消息的长度
+			char data[];//消息的内容
+		}
+		struct msgbuf {
+			__kernel_long_t mtype;          /* type of message */
+			char mtext[1];                  /* message text */
+		};
+						
+	消息队列的API函数接口:
+	1.申请一个system VIPC的“key”
+		key的作用就是唯一的标识一个IPC
+		因为内核中有非常多的IPC对象
+		
+		NAME
+			   ftok - convert a pathname and a project identifier to a System V IPC key
+				ftok-将路径名和项目标识符转换为System V IPC密钥
+		SYNOPSIS
+			   #include <sys/types.h>
+			   #include <sys/ipc.h>
+					file to key
+			   key_t ftok(const char *pathname, int proj_id); 
+				pathname:一个文件的路径名(必须存在)
+				proj_id:一个自定义的整数(非0)
+				返回值:
+					成功返回一个system VIPC的key,类型为key_t(unsigned long)
+					失败返回-1,同时errno被设置
+					
+		如果两个进程要通过systemV通信,那么他们的key必须相同(ftok的两个参数必须相同)。	
+
+
+	2.创建或者打开system V的消息队列
+		NAME
+			   msgget - get a System V message queue identifier
+					打开或者创建一个消息队列
+		SYNOPSIS
+			   #include <sys/types.h>
+			   #include <sys/ipc.h>
+			   #include <sys/msg.h>
+			   int msgget(key_t key, int msgflg);
+					key:由ftok生成的标识
+					msgflg:标志位,分两种情况
+						a.创建时指定权限
+							IPC_CREAT | 权限位
+							如:
+								IPC_CREAT | 0664
+						b.打开
+							0
+				返回值:
+					成功返回一个打开的消息队列的ID(表示一个打开的消息队列)
+					失败返回-1,同时errno被设置
+					
+				消息队列是随内核的持续性(可以手动删除)。		
+
+	3.发送/接收消息
+		NAME
+			   msgrcv(接收), msgsnd(发送) - System V message queue operations
+			
+		SYNOPSIS
+			   #include <sys/types.h>
+			   #include <sys/ipc.h>
+			   #include <sys/msg.h>
+				msgsnd:发送一个指定的消息到消息队列上面去
+			   int msgsnd(int msqid, const void *msgp, size_t msgsz, int msgflg);
+					msqid:msgget的返回值,表示要把消息发送到哪一个消息队列
+					msgp:指针,指向你要发送的消息结构体,该结构体需要自己定义,但是手册中给出了建议:
+						   struct msgbuf {
+							   long mtype;       //消息的类型(整数,由程序员自己解释)
+							   char mtext[256];    //具体的消息内容
+						   };
+					msgsz:消息内容的长度,上面的消息结构体中的消息的实际大小
+					msgflg:发送标志
+						a.0 阻塞模式(默认),一定要写入到消息队列
+						b.IPC_NOWAIT 非阻塞模式
+						
+					返回值:
+						成功返回0
+						失败返回-1,同时errno被设置
+						
+					msgrcv:从指定的消息队列上面读取一个指定的消息
+			   ssize_t msgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp,
+							  int msgflg);
+					msqid:msgget的返回值,表示要从哪一个消息队列读取消息
+					msgp:指针,指向你要保存读取到的消息结构体
+						会把读取到的消息保存到msgp指向的结构体
+					msgsz:为了防止内存越界,保存上面指针指向的结构体的大小
+					msgtyp:你要去读的消息的类型(0为任意类型)
+					msgflg:标志
+						a.0 阻塞模式(默认),一定要读取到消息
+						b.IPC_NOWAIT 非阻塞模式
+						
+					返回值:
+						成功返回实际读取到的数据的字节数
+						失败返回-1,同时errno被设置
+
+	4.消息队列的控制操作(除了读写以外的操作)
+		NAME
+			   msgctl - System V message control operations
+		SYNOPSIS
+			   #include <sys/types.h>
+			   #include <sys/ipc.h>
+			   #include <sys/msg.h>
+				msgctl用来在指定的消息队列上面执行除了读写以外的操作,如:
+					获取头结点的信息,删除消息队列,修改信息....
+			   int msgctl(int msqid, int cmd, struct msqid_ds *buf);
+					msqid:msgget的返回值,表示要操作哪一个消息队列
+					cmd:命令号,表示要进行什么操作,常用的有
+						IPC_RMID 删除指定的消息队列,第三个参数可以为NULL
+						IPC_STAT 获取属性(头结点),把获取到的属性存储到buf指向的内存地址
+						IPC_SET	 用来设置消息队列的属性(头结点),把要设置的属性存储到buf指向的结构体中,可以设置的属性有限(参考手册)	
+					buf:第三个参数,配合第二个参数使用
+					
+				返回值:
+					成功返回0(某几种情况)
+					失败返回-1,同时errno被设置
+
+	练习:
+		写一个代码,测试消息队列。
+
+
+	消息队列是一种可以被替代的IPC,每一次通信,消息至少要被COPY两次
+		发送:用户空间----->内核空间  
+		读取:内核空间----->用户空间
+		
+2.System V共享内存
+	进程间通信的常用方法,多个进程共享一端内存“共享内存”。
+	进程地址空间是独立的(共享内存区域是存在于内核中)
+		“随内核的持续性”
+		
+	由于是多个进程共享一段内存,这段内存既是P1的,又是P2的,P1往这段内存存入数据,实际上就是往P2的内存中存入数据。“比消息队列少了一次copy”	
+	
+	实现方式:
+		在内核中开辟一块内存空间,其他进程通过“映射”的方式,获取这一段内存的引用(指针)
+		
+	操作步骤:
+	1.申请一个system VIPC的“key”
+		key的作用就是唯一的标识一个IPC
+		因为内核中有非常多的IPC对象
+		NAME
+			   ftok - convert a pathname and a project identifier to a System V IPC key
+				ftok-将路径名和项目标识符转换为System V IPC密钥
+		SYNOPSIS
+			   #include <sys/types.h>
+			   #include <sys/ipc.h>
+					file to key
+			   key_t ftok(const char *pathname, int proj_id); 
+				pathname:一个文件的路径名(必须存在)
+				proj_id:一个自定义的整数(非0)
+				返回值:
+					成功返回一个system VIPC的key,类型为key_t(unsigned long)
+					失败返回-1,同时errno被设置
+					
+		如果两个进程要通过systemV通信,那么他们的key必须相同(ftok的两个参数必须相同)。	
+
+	2.创建或者打开system V的共享内存 shmget
+	NAME
+		   shmget - allocates a System V shared memory segment
+	SYNOPSIS
+		   #include <sys/ipc.h>
+		   #include <sys/shm.h>
+		   shmget:用来在内核中创建或者打开一个systemV共享内存(IPC对象)
+		   int shmget(key_t key, size_t size, int shmflg);
+			key:由ftok生成的标识,标识一个唯一的IPC对象
+			size:以字节为单位指定共享内存区域的大小
+				在实际操作中,当shm是创建一个新的共享内存区域时,必须指定一个不为0的size值
+				如果是打开一个已经存在的共享内存区域,size会被忽略
+			shmflg:标志位
+				a.创建 
+					IPC_CREAT | 权限位
+					如:
+					IPC_CREAT | 0664
+				b.打开 0
+			返回值:
+				成功返回共享内存区域的id(标识打开的共享内存对象),
+				失败返回-1,同时errno被设置
+				
+	3.映射(shmat)/解映射(shmdt)
+		NAME
+			   shmat, shmdt - System V shared memory operations
+		SYNOPSIS
+			   #include <sys/types.h>
+			   #include <sys/shm.h>
+				shmat:shmat用来映射一段共享内存区域到进程的地址空间
+			   void *shmat(int shmid, const void *shmaddr, int shmflg);
+				shmid:你要映射的共享内存对象的ID,shmget的返回值
+				shmaddr:要把共享内存映射到进程地址空间的哪一个位置
+						一般人都不知道,设置为NULL,表示让操作系统自行选择
+				shmflg:映射标志,常用的有以下几个
+					a.SHM_RDONLY 只读,映射成功后,进程对这一段内存只有可读的权限
+					b.0 读写
+				返回值:
+					成功返回映射后的内存的首地址
+					失败返回NULL,同时errno被设置
+				
+				shmdt:用来解映射一端共享内存区域		
+			   int shmdt(const void *shmaddr);
+				shmaddr:要解映射的地址,是shmat的返回值
+				返回值:
+					成功返回0
+					失败返回-1,同时errno被设置
+					
+	4.其他操作
+		NAME
+			   shmctl - System V shared memory control
+
+		SYNOPSIS
+			   #include <sys/ipc.h>
+			   #include <sys/shm.h>
+				shmctl:用来进行除了映射和解映射之外的其他操作,如,获取属性,设置属性,删除...
+			   int shmctl(int shmid, int cmd, struct shmid_ds *buf);
+				shmid:要进行控制操作的共享内存ID(shmget的返回值)
+				cmd:具体的操作,命令号,表示要进行什么操作
+					IPC_RMID:删除指定的共享内存
+							当cmd==IPC_RMID时,buf可以设置为NULL
+					IPC_STAT 获取共享内存的属性(struct shmid_ds结构体内存)
+							把获取到的信息保存到buf指向的内存空间
+					IPC_SET	 设置共享内存的属性
+							buf指向你要设置的属性结构体
+					
+					struct shmid_ds buf;
+					shmctl(shmid,IPC_STAT, &buf); //先获取原先的属性
+					//修改要设置的属性
+					shmctl(shmid,IPC_SET, &buf);
+					
+				buf:随着第二个参数的不同有不同的含义
+				
+				返回值:
+					成功返回0
+					失败返回-1,同时errno被设置
+		练习:
+			利用共享内存,实现两个进程的通信。
+	
+	问题:
+		在内核中开辟一个共享内存区域(systemV),把这个共享区域的前面4个字节当成一个int来看待
+		int *p = shmat();
+		p = 0;
+		
+		P1:
+		i = 1000000;
+		while(i--)
+		{
+			(*p)++;
+		}
+	
+		P2:
+		i = 1000000;
+		while(i--)
+		{
+			(*p)++;
+		}
+		如果两个进程不是同时运行的,共享内存区域的值肯定是2000000,
+		但是如果P1和P2两个进程同时访问共享内存区域(语法肯定没问题),按道理说,P1和P2执行完毕后,*P的值应该为2000000,但实际的值可能不是?
+		为什么呢?
+		多个进程同时访问一个共享资源,可能会发生"竞争"
+		那么我们如何避免竞争呢?
+			信号量
+		
+		
+		
+	
+	作业:
+		了解一些posix的消息队列和共享内存。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
