@@ -37,23 +37,30 @@ int main()
 	}
 	*p = 0;
 	//shmdt(p);
+	//创建一个信号量
+	//初始化信号量(永远只会被初始化一次)
 	pid_t pid = fork();
 	if(pid >0)//父进程
-	{
+	{	
 		int i = 1000000;
+		//LOCK
 		while(i--)
 		{
-			(*p)++;
-		}	
+			(*p)++; //临界区
+		}
+		//UNLOCK
 		wait(NULL);
+		
 		printf("father value:%d\n",*p);
 	}else if(pid == 0)//子进程
 	{	
 		int i = 1000000;
+		//LOCK
 		while(i--)
 		{
-			(*p)++;
+			(*p)++; //临界区
 		}
+		//UNLCOK
 		printf("child value:%d\n",*p);
 	}else 
 	{

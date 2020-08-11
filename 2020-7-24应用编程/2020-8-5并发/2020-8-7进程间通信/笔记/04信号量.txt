@@ -36,37 +36,411 @@
 	信号量是程序界最高尚的一个东西,因为他不是为了自己而存在的,它是为了保护别人(共享资源)而存在的“保镖”。
 		
 2.信号量是如何工作的?	
+	信号量是为了保护共享资源有序访问而存在的
+	信号量机制其实是程序员之间的一种约定,用来保护共享资源的
+	如:
+		进程A和进程B,都需要访问一个共享资源“互斥设备”,那么我们就可以使用一个信号量来表示进程能不能访问这个共享资源,每一个进程需要访问共享资源前,先去访问信号量,如果能访问共享资源(信号量允许),则先把信号量设置为“NO”,然后再去访问共享资源,访问完共享资源后,再把信号量设置为"YES".
+	========>
+		在访问共享资源前,先去判断共享资源能否被访问?
+			如何判断,使用信号量
+			
+			如果信号量允许,先LOCK(上锁),如果不允许,则等待(wait),直到信号量允许
+			
+			访问共享资源(把访问共享资源的代码叫做“临界区”)
+		
+			在访问完共享资源后,要UNLOCK(解锁)
+		
+		那么信号量是如何实现的呢?
+			"信号量" 大家都可以访问的一个整数
+
+		一个进程或者线程可以在某一个信号量上面执行如下三种操作:
+		1.创建一个信号量(create)
+			创建一个信号量的同时要指定信号量的初始值.
+			信号量的初始值表示该信号量保护的共享资源,可以同时被多少个任务访问
+			sem--->5 表示同一个时刻可以有5个进程或者线程同时去访问他所保护的共享资源
+			sem--->1 表示只有1个进程或者线程同时去访问他所保护的共享资源“互斥信号量”
+		
+		2.等待一个信号量(wait)
+			这个操作会测试信号量的值,如果其值<=0那么进程就会等待(阻塞),一旦其值>0这个时候进程就会将值“-1”(LOCK),继续往下执行临界区代码
+			
+			其函数实现类型如下逻辑:
+			------------------LOCK---------------------	
+			while(semaphore_value <=0)
+			{
+				sleep();//wait,block这个进程或者线程
+			}
+			semaphore_value--;//表示该进程或者线程获取了该信号量
+			---------------------------------------
+			//上面的操作必须是“原子操作”,不允许中断且不允许有两个以及以上的进程同时进入
+			//下面的代码,获取了信号量,就可以访问信号量保护的共享资源	
+
+			wait操作一般称为P操作(上锁,LOCK)
+				P(proberen)尝试 荷兰语 
+		
+		3.释放一个信号量
+			该操作是在访问完共享资源(执行完临界区)后要进行的一个操作,就是将该信号量“+1”
+			
+			其函数实现类型如下逻辑:
+			semaphore_value++; //原子操作(要么执行,要么不执行)
+							//一条语句可能对应多条汇编
+							//不能被中断且只能有一个进程去执行
+							
+			V操作 verhogen(增加) 荷兰语
+				解锁(UNLOCK)
+
+		信号量去保护共享资源是通过:
+			在访问临界区的前面加一个P操作
+			在访问临界区的后面加一个V操作
+			
+		保护共享资源,避免竞争的步骤:
+			a.明确谁是共享资源,明确需要保护的对象
+			b.确定临界区(访问共享资源的代码)
+			c.每一个需要保护的共享资源,就需要一个信号量
+			
+	思考:
+		1.现在有5个独立的共享资源,A,B,C,D,E需要保护,程序员决定使用一个信号量S来同时保护这5个资源
+			P(S)
+			A
+			V(S)
+			
+			P(S)
+			B
+			V(S)
+			....
+			请问这种设计有什么问题,该如何改进?
+			虽然可以达到“保护”的目的,但是降低了并发度,A,B,C,D,E本身可以同时访问
+
+		2.现在有5个独立的共享资源,A,B,C,D,E需要保护,程序员决定使用五个信号量S1,S2,S3,S4,S5来同时保护这5个资源
+			P(S1)
+			A
+			V(S1)
+			
+			P(S2)
+			B
+			V(S2)
+			...
+			-------------------------
+			如果两个进程需要同时访问A和B呢?
+			
+			P1进程
+			P(S1)
+			P(S2)
+			访问A和B的临界区
+			V(S2)
+			V(S1)
+			
+			
+			P2进程
+			P(S2)
+			P(S1)
+			访问A和B的临界区
+			V(S1)
+			V(S2)
+			
+			上面这种情况会造成死锁(deadlock)
+			没有外力作用,状态不会改变。
+			=======>
+			P1进程
+			P(S1&S2) //要么都获取,要么都不获取
+			访问A和B的临界区
+			V(S1&S2)
+	
+3.linux对信号量的具体实现
+	System V的信号量(计数信号量集)
+	Posix信号量(单个信号量)
+
+	3.1 System V的信号量
+		大概流程:
+			1.申请一个System V的key
+				ftok
+			2.创建或者打开一个system v信号量集
+				semget
+			3.system v信号量的P(LOCK)/V(UNLOCK)操作
+
+			4.system v信号量的其他操作
+		
+		system v信号量是一个计数信号量集(集合:一个集合中有多个信号量),计数信号量数组
+				计数信号量:该信号量的值可以是大于1的,也就是说,该信号量它保护的共享资源允许有多个任务同时访问
+				信号量集:一个信号量集中有多个单独的信号量
+				
+				计算信号量的值设置为1的话,======>互斥信号量
+				互斥信号量:该信号量的值要么是1,要么是0,也就是说,该信号量它保护的共享资源只允许一个任务同时访问
+				
+				为什么要把system v信号量设计成一个信号量集?
+					要满足P(S1&S2)这种情况
+						要么同时获取S1和S2这两个信号量,要么都不获取
+						
+		API函数接口:
+		1.创建或者打开一个信号量
+		NAME
+			   semget - get a System V semaphore set identifier
+		SYNOPSIS
+			   #include <sys/types.h>
+			   #include <sys/ipc.h>
+			   #include <sys/sem.h>
+				semget:获取一个System V信号量集的ID
+			   int semget(key_t key, int nsems, int semflg);	
+				key:system VIPC对象的“key”,由ftok生成
+				nsems:你要创建的信号量集中的信号量的个数
+					如果不是创建而是打开一个已经存在的信号量集,此参数可以设置为0,一旦创建成功,信号量集中的信号量就不能改变了
+				semflg:创建标志
+					a.创建
+						IPC_CREAT | 权限位
+					b.打开
+						0
+				返回值:
+					成功返回获取的信号量集的ID(唯一的标识一个信号量)
+					失败返回-1,同时errno被设置
+					
+		 The values of the semaphores in a newly created set are indeterminate. 
+		    新创建的集合中的信号量的值不确定。
+		 it  should  explicitly initialize the semaphores to the desired values.
+			应该显式的初始化信号量集中的信号量的值。
+		 Initialization  can be done using semctl(2) SETVAL or SETALL operation. 
+			可以使用semctl这个函数初始化信号量的值
+			
+		2.对信号量的操作
+		semctl用来进行对指定的信号量集进行控制操作,如设置信号量的值,删除信号量...
+		NAME
+			   semctl - System V semaphore control operations
+		SYNOPSIS
+			   #include <sys/types.h>
+			   #include <sys/ipc.h>
+			   #include <sys/sem.h>
+				这个函数用来进行对信号量的控制操作,可以有三个参数,也可以有4个参数
+			   int semctl(int semid, int semnum, int cmd, ...);
+				semid:要操作的信号量的id(semget的返回值),标识你要操作哪一个信号量
+				semnum:要操作信号量集中的哪一个信号量,就是信号量数组的下标,从0开始
+						0,1,2,3,4...nsems-1
+				cmd:命令号,表示你要进行什么操作,第四个参数随着命令号的不同而不同
+				常用的命令号有:
+				GETVAL:获取第semnum个信号量的值,并不是P/V操作
+				SETVAL:设置第semnum个信号量的值,并不是P/V操作	
+				GETALL:获取该信号量集中所有信号量的值
+				SETALL:设置该信号量集中所有信号量的值
+				IPC_RMID:删除这个信号量
+				IPC_STAT:获取信号量的属性(semid_ds结构体),把内核中的结构体信息赋值到第四个参数指向的内存空间。
+				IPC_SET:设置信号量的属性(semid_ds结构体),把第四个参数指向的内存空间的值设置到内核。
+				
+				cmd == GETVAL,第四个参数不需要,函数的返回值就是要获取的信号量的值
+				如:
+					int val = semctl(simid,1,GETVAL);
+					获取semid指定的信号量集中第二个信号量的值
+				
+				cmd == SETVAL 第四个参数应该是一个整数,表示你要设置的值
+				如:
+					int r = semctl(simid,1,SETVAL,5);
+					设置semid指定的信号量集中第二个信号量的值为5
+		
+				cmd == GETALL 第四个参数应该是一个指针,指向一块可用的空间,存储获取到的值
+				如:
+					unsigned short vals[10] = {0};
+					int r = semctl(simid,0,GETALL,vals);
+						vals[0] 保存信号量集中第0个信号量的值
+						vals[1] 保存信号量集中第1个信号量的值
+						.....
+						
+				cmd == SETALL 第四个参数应该是一个指针,指向一个数组,这个数组中保存了所有的值
+				如:
+					unsigned short vals[10] = {1,1,1,1,1,1,1,1,1,1};
+					int r = semctl(simid,0,SETALL,vals);
+						第0个信号量的值为 1
+						第1个信号量的值为 1
+						....
+		3.P/V操作
+		NAME
+			   semop, semtimedop - System V semaphore operations
+		SYNOPSIS
+			   #include <sys/types.h>
+			   #include <sys/ipc.h>
+			   #include <sys/sem.h>
+				semop:用来对指定的信号量进行P/V操作
+				到底是P操作还是V操作呢?
+				由一个结构体struct sembuf来描述你要进行的具体的操作
+				struct sembuf
+				{
+					unsigned short sem_num;  /* semaphore number */
+						//你要对信号量集中的哪一个信号量操作(信号量数组的下标)	
+					short          sem_op;   /* semaphore operation */
+						//具体的操作
+							>0:V操作/up/unlock 释放一个信号量
+							=0:等待信号量的值变为0,有的进程需要信号量变为0才能继续往下运行
+							<0:P操作/down/lock 等待一个信号量
+							semval(信号量的值) = 原semval + sem_op;
+							保证P操作之后信号量的值>=0,不然P操作就需要等待
+					short          sem_flg;  /* operation flags */
+						//操作标志
+						0 默认(阻塞),如果进行的是P操作,获取不了,则等待
+						IPC_NOWAIT 非阻塞模式,不等待,如果是P操作,能获取则获取,不能获取则报错
+						SEM_UNDO:撤销
+						防止进程带锁退出.标记也可以设置多个。
+						如果设置了SEM_UNDO这个标志,内核会额外的记录该进程对该信号量的所有的P/V操作,然后在进程退出的时候,会还原该信号量的所有操作
+						如:
+						P	V   P   V    P   KILL
+						-1	+1  -1  +1   -1   还原+1
+						
+				};
+				描述你要对信号量集中的哪一个信号量进行什么操作
+				一个结构体描述对信号量集中一个信号量的操作,具体是P还是V由结构体中的成员(sem_op)决定,如果你要一次性对该信号量集中的多个信号量进行操作(P(S1&S2)),需要多个结构体,组成一个结构体数组。
+				
+			   int semop(int semid, struct sembuf *sops, size_t nsops);
+					semid:要操作的信号量集的ID
+					sops:结构体指针(数组),指向对信号量集中的所有操作
+						sops[0] 表示对信号量集的第1个操作(不是对编号为1的信号量操作)
+						sops[1] 表示对信号量集的第2个操作
+						...
+					nsops:第二个参数sops数组中的元素个数
+					数组作为函数参数(数组的首地址+元素个数)
+					返回值:
+						成功返回0
+						失败返回-1,同时errno被设置
+					semop要么是不等待要么是“死等”	
+						
+				semtimedop:限时等待,规定的时间内没有完成操作,则返回-1.
+				前面三个参数都是一样的,使用第四个参数描述等待的时间
+			   int semtimedop(int semid, struct sembuf *sops, size_t nsops,
+							  const struct timespec *timeout);
+					struct timespec
+					{
+						time_t tv_sec;//秒数
+						long tv_nsec;//纳秒
+					};
+					1s = 1000 ms
+					1ms = 1000 us
+					1us = 1000 ns
+					
+				例子:假如最多等待5秒
+					struct timespec tv;
+					tv.tv_sec = 5;
+					tv.tv_nsec = 0;
+					semtimedop(semid,sops,nsops,&tv);
+			
+	讲完了system V信号量所有的内容,
+	练习
+		使用信号量保存shm_test中的共享资源,使他有序访问。
+		25分钟。
+		
+	3.2 POSIX信号量     
+		有名信号量:可以用于进程间或者线程间同步/互斥
+			基于内核的信号量,在文件系统中有一个入口(有一个文件名,inode),但是信号量对象(值)却是存在于内核中。
+			=====>
+			既可以用于任意进程间的同步,有可以用于线程间的同步
+			
+		无名信号量:也可以用于进程间或者线程间同步/互斥
+			没有名字,无名信号量存在于内存中 “基于内存的信号量”
+				====>
+				一般用于一个进程多个线程的同步
+			如果信号量存在的这一段内存是一个“共享内存”,任意进程都可以访问这一段内存(信号量)
+				既可以用于任意进程间的同步,也可以用于一个进程多个线程的同步
+			如果信号量存在的这一段内存是一个进程本身的地址空间,此时只能用于该进程内部所有的线程的同步(进程的地址空间是独立的)
+			
+			POSIX信号量的API函数接口:
+				见图
+				
+			POSIX信号量使用sem_t(unsigned short)来表示一个信号量	
+		POSIX信号量的操作
+		(1).创建或者打开一个POSIX信号量
+			POSIX信号量使用sem_t来表示一个信号量。
+			有名信号量
+				NAME
+					   sem_open - initialize and open a named semaphore
+				SYNOPSIS
+					   #include <fcntl.h>           /* For O_* constants */
+					   #include <sys/stat.h>        /* For mode constants */
+					   #include <semaphore.h>
+						sem_open:打开并且初始化一个有名信号量
+					   sem_t *sem_open(const char *name, int oflag);//仅仅是打开
+					   sem_t *sem_open(const char *name, int oflag,mode_t mode, unsigned int value);//创建并且初始化
+						name:要创建或者打开的POSIX信号量在文件系统中的路径名(以‘/’开头的路径且路径中只存在一个'/',如:"/test.sem")
+						oflag:标志
+							a.单纯的打开
+								0
+							b.创建
+								O_CREAT
+						第三个参数和第四个参数是当你创建一个有名信号量时才需要		
+						mode:创建的时候的权限位,有两种指定方法
+							S_IRUSR....
+							0664
+						value:指定创建的有名信号量的初始值,信号量保护的共享资源可以有多少个进程同时访问
+						
+						返回值:
+							成功返回一个sem_t的指针,指向POSIX创建的有名信号量,就是内核中的一块空间
+							失败返回SEM_FAILED的宏,同时errno被设置
+							
+					   Link with -pthread.//使用有名信号量在编译的时候必须链接多线程库
+					   编译的时候加上 -lpthread
+					   libpthread.so //多线程库
+					  有名信号量直接创建在共享内存区域 
+					   
+
+			无名信号量(只需要初始化)
+				a.定义或者分配一块空间存储无名信号量的值
+					1.sem_t sem; //栈
+					2.sem_t *psem = (sem_t *)malloc(sizeof(sem_t));	 //堆
+						用于进程内部的线程的通信,都是属于进程的地址空间,其他进程不能访问。
+					3.	int shmid = shmget(key,sizeof(sem_t),IPC_CREAT|0664);
+						sem_t *psem = (sem_t *)shmat(shmid,NULL,0);
+						既可以用于任意进程间的同步,也可以用于一个进程多个线程的同步
+					三种方式都是分配一个无名信号量
+					
+				b.初始化无名信号量(sem_init)
+					无名信号量是基于内存的信号量,a步骤中1,2信号量在进程地址空间中(用于一个进程多个线程的同步)3是存在于内核中(既可以用于任意进程间的同步,也可以用于一个进程多个线程的同步)	
+					已经有了一块空间,只需要把指定的值存储到那个空间即可
+					
+					NAME
+						   sem_init - initialize an unnamed semaphore
+					SYNOPSIS
+						   #include <semaphore.h>
+							sem_init:初始化一个无名信号量
+						   int sem_init(sem_t *sem, int pshared, unsigned int value);
+							sem:你要初始化的信号量的地址
+							pshared:该无名信号量的共享方式
+								0:进程内部的线程共享
+								1:不同进程间共享(前提:无名信号量存在于共享内存中)
+							value
+						   Link with -pthread.
+						返回值:
+							成功返回0
+							失败返回-1,同时errno被设置
+						信号量只应该被初始化一次,否则会产生不可预知的结果。	
+		
+		(2).POSIX信号量的操作
+		
+		
+		
+		(3).POSIX信号量的销毁
+			有名信号量
+
+
+			无名信号量
+			
+		
+				
+				
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+		
+作业:
+	1.System V的信号量API函数需要自己去操作(P/V),请大家设计几个对信号量的操作功能:
+		假设信号量集中只有一个信号量,并且信号量是一个互斥信号量
+		
+		实现:mysem_com.h/mysem_com.c
+			Mysem_get();//创建或者打开一个system V信号量
+			Mysem_Init();//初始化一个信号量
+			Mysem_P();
+			Mysem_V();
+			Mysem_Del();
+		
+			
+			
+			
+							
+扩展:
+	1.死锁是什么状态?
+	2.死锁是如何产生的？
+	3.死锁如何解除?
+	4.死锁如何避免?
 
 
 
