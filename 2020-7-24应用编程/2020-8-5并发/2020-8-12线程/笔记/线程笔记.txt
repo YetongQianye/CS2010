@@ -1,0 +1,245 @@
+为了能够“并发”的执行任务,现代操作系统特地引入了“进程”的概念
+	对于进程,虽然能够实现并发,但是也会有一些缺点
+	1.进程的地址空间是独立的,进程间通信的代价比较大
+		如果进程需要进行数据交换,肯定需要进程间通信(pipe/fifo/msg/shm/sem...)
+				copy		copy
+		P1进程  ----->内核 ------>P2进程
+	
+	2.创建一个进程的系统开销比较大,因为要拷贝父进程的所有("copy-on-write")
+
+	于是,有人就提出了一个想法,能不能在同一个进程地址空间内部实现“任务”的并发呢?
+		线程(轻量级进程)
+		
+1.线程的概念
+	1.线程是比进程更小的活动单位,它是进程中的一个执行路径(执行分支),线程依附于一个进程
+	2.进程内部的所有线程共享进程的地址空间
+	
+	线程的特点:
+		1.创建一个线程比创建一个进程的开销要小得多。
+		因为不需要拷贝父进程的地址空间,线程不拥有系统资源,只有一些在运行中不可缺少的数据结构
+		进程是分配系统资源的最小单位。
+
+		2.实现线程间的通信十分简单,因为进程内部的所有线程共享进程的地址空间,线程间的通信不需要通过内核。
+
+		3.线程也是一个动态的概念(ready/runing/blocking)
+		是进程内部的一个执行分支,线程是用来并发的执行进程内部的指令的	
+		C语言的指令必须在函数内部,所以所有的线程都对应一个线程函数,线程的工作就是去执行指定的线程函数,如果线程函数执行完了,则线程退出
+		
+		4.一个进程内部有一个主线程(main函数),在进程运行过程中,可以创建其他子线程。
+			主线程(主函数)结束(return/exit),所有子线程都会被强制退出
+
+		5.进程是分配系统资源的最小单位。系统是按照线程进行调度的(一个线程就是一个任务,也需要分配CPU时间),线程是参与CPU竞争的最小单位
+			在进程内部创建多个线程,会提高进程的CPU占用率
+			
+	基本上知道线程是什么了?		
+			
+		Thread的实现方式有很多种,比较常用的是POSIX标准的线程
+		POSIX标准的线程函数需要连接多线程库(libpthread.so)
+
+2.linux下面线程相关的API函数
+	1.创建一个线程 pthread_create
+		每一个线程都有一个线程ID(tid),类似于进程ID(pid)
+		用来唯一的标识一个线程,在pthread中,使用pthread_t来描述一个线程ID
+		typedef unsigned long pthread_t
+		
+		线程属性(pthread_attr_t)结构体
+			线程ID
+			线程的优先级
+			线程的栈空间大小
+			.....
+		在pthread中,线程属性使用pthread_attr_t来描述,同时还提供了几个用于改变线程属性的API函数,但是不建议程序员直接修改pthread_attr_t的结构体,而是使用线程默认属性(NULL)
+		
+		线程是进程内部的一个指令的执行分支,多个线程,就是多个指令序列并发的执行
+		C语言的指令必须在函数内部,所以所有的线程都对应一个线程函数,一个线程创建成功后,要执行的指令序列都在一个指定的函数中"线程函数"
+		在创建线程时候,要指定线程的“线程函数”???
+		如何指定呢?
+		指定线程函数的地址,把线程函数的地址作为参数传入创建线程的API中。存在一个问题:
+			张三的线程函数:
+			int func(int )
+			{
+				....
+			}
+			&func  ====>int (*)(int);		
+		
+			李四的线程函数:
+			void func(int *,int )
+			{
+				...
+			}
+			&func =====>void (*)(int *,int);
+			
+			因为线程函数的地址(函数指针)作为参数传入,函数指针也是有类型的,规定线程函数的地址必须为 
+				void *(*start_routine) (void *);//函数指针
+				start_routine是一个函数指针,保存一个函数的地址,这个函数的类型应该是:
+				void *func(void *)
+				{
+					...
+				}
+			所有的线程函数的类型必须有一个void *的返回值,并且带一个void*的参数	
+			
+	NAME
+		   pthread_create - create a new thread
+
+	SYNOPSIS
+		   #include <pthread.h>
+				pthread_create:用来创建一个新线程的	
+		   int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
+							  void *(*start_routine) (void *), void *arg);
+				thread:指针,指向一块可用的内存,保存线程的线程号
+						线程的线程号可以使用pthread_self()获取
+				attr:线程属性,指针,指向一个pthread_attr_t的结构体,次结构体保存的是新创建的线程的线程属性,一般使用NULL表示使用OS的默认属性
+				start_routine:函数指针,执行创建的线程要执行的函数
+				arg:void *,线程函数的实际参数
+						如果线程函数不需要参数,可以写为NULL
+						如果线程函数需要一个参数,可以传入参数的地址
+						如果线程函数需要两个/多个参数呢?
+						变成一个参数,封装成一个结构体
+						struct arg_test
+						{
+							int a;
+							char b;
+						};
+				返回值：
+					成功返回0
+					失败返回-1,同时errno被设置
+				
+		   Compile and link with -pthread.
+
+	练习:
+		练习pthread_create的使用。
+
+	2.线程退出	
+		2.1 线程函数结束
+			线程函数返回/结束,线程自动退出
+			
+		2.2 在线程执行的任意时刻,调用pthread_exit()
+			NAME
+				   pthread_exit - terminate calling thread
+			SYNOPSIS
+				   #include <pthread.h>
+				   void pthread_exit(void *retval);
+					retval:指针,指向的位置可以被其他线程读取
+						retval指向的位置不应该存在于栈上,因为线程终止后栈的内容是未定义的
+			
+		2.3 被其他的线程干掉了(cancel)
+			其他线程调用pthread_cancel
+			NAME
+				   pthread_cancel - send a cancellation request to a thread
+			SYNOPSIS
+				   #include <pthread.h>
+				   int pthread_cancel(pthread_t thread);
+					thread:要取消的线程号
+					返回值:
+						成功返回0
+						失败返回非0
+			
+			t1:pthread_cancel(t2);
+			t1调用pthread_cancel取消线程t2,t2线程一定会被取消吗?
+			不一定的,取决于线程属性中的一个属性(是否可被取消)
+			可以使用一个接口去修改取消属性。
+			pthread_setcancelstate()
+			NAME
+				   pthread_setcancelstate, pthread_setcanceltype - set cancelability state and type
+			SYNOPSIS
+				   #include <pthread.h>
+				   int pthread_setcancelstate(int state, int *oldstate);
+					state:要设置的“取消属性”的值,有以下两种
+						PTHREAD_CANCEL_ENABLE   默认属性(可被取消)  0
+						PTHREAD_CANCEL_DISABLE  不可被取消			1
+							如果收到取消请求,则取消请求会累积到下一次线程设置为可取消为止
+					oldstate:指针,指向一个可用的空间,保存上一次的取消状态
+						返回值:
+						成功返回0
+						失败返回其他值
+				   int pthread_setcanceltype(int type, int *oldtype);
+						
+			一个线程退出了,并不代表线程它所有的资源都已经被释放了.一般还保存了一些基础的数据结构
+			一个线程退出,它的资源是否全部被释放,取决于线程的一个属性:
+				detach 分离属性
+					ENABLE 分离状态
+						该线程结束后,它所有的资源都会自动的被释放
+					DISABLE 非分离状态(默认属性)
+						该线程结束后,它会有一部分资源不会释放,必须要其他线程调用pthread_join函数才能回收资源
+				pthread_detach 用来设置一个线程的分离属性(仅仅能设置为分离)		
+			
+			NAME
+				   pthread_detach - detach a thread
+			SYNOPSIS
+				   #include <pthread.h>
+					pthread_detach:用来分离一个线程
+				   int pthread_detach(pthread_t thread);
+					thread:线程ID,要分离的线程的ID
+					返回值:
+						成功返回0
+						失败返回其他值	
+					一般用法:
+					pthread_detach(pthread_self()); //分离自己		
+		如果线程是非分离的,在线程结束后,需要调用pthread_join函数去回收线程的资源并且读取线程的退出信息pthread_exit(retval);
+					
+		pthread_join等待一个线程退出并且释放线程资源
+		一个以分离的线程不需要调用pthread_join
+		
+		pthread_join()函数等待thread指定的线程终止.如果该线程已经终止,则pthread_join（）立即返回.thread指定的线程必须是可连接的。
+		NAME
+			   pthread_join - join with a terminated thread
+		SYNOPSIS
+			   #include <pthread.h>
+
+			   int pthread_join(pthread_t thread, void **retval);
+				thread:要等待退出的那个线程的线程ID
+				retval:类型是一个二级指针
+					二级指针,用来保存退出线程的返回状态的
+					把线程的返回值保存到retval指向的内存地址中去
+					只不过retval是一个二级指针,保存了一个一级指针的地址,因为线程的返回值本来就是一个一级指针
+					
+				返回值:
+					成功返回0
+					失败返回其他值
+				作用:
+					1.等待线程退出(本身是阻塞的)
+					2.回收被等待的线程的线程资源
+			
+			为什么是一个“二级指针”?
+			线程函数的类型为:
+				void *func(void *)
+				{
+					int *p = malloc();//保存了一些非常重要的信息
+					//return (void *)p;
+					pthread_exit((void *)p);
+				}
+				
+			在其他函数(pthread_join)中就需要去读取这些非常重要的信息。
+			如何读取重要信息呢?只能用一个指针指向线程返回的地址
+				=====>
+				void *r = NULL;// 准备使用r保存线程返回的地址
+				r = p;//理论上在pthread_join中应该做这一句。
+				由于r不在pthread_join的作用域下面,在pthread_join中不能直接访问r,只能间接访问,需要r的地址,====>需要传入r的地址
+				pthread_join(tid,&r);
+				&r ---->指针的地址,二级指针
+					
+			
+作业:
+	1.进程和线程有什么区别?
+	
+	2.什么时候使用进程,什么时候使用线程?	
+			
+			
+			
+			
+			
+			
+			
+			
+			
+
+
+
+
+
+
+
+
+
+
+
+

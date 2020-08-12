@@ -156,9 +156,9 @@
 			2.创建或者打开一个system v信号量集
 				semget
 			3.system v信号量的P(LOCK)/V(UNLOCK)操作
-
+				semop
 			4.system v信号量的其他操作
-		
+				semctl
 		system v信号量是一个计数信号量集(集合:一个集合中有多个信号量),计数信号量数组
 				计数信号量:该信号量的值可以是大于1的,也就是说,该信号量它保护的共享资源允许有多个任务同时访问
 				信号量集:一个信号量集中有多个单独的信号量
@@ -278,8 +278,8 @@
 						如:
 						P	V   P   V    P   KILL
 						-1	+1  -1  +1   -1   还原+1
-						
 				};
+				
 				描述你要对信号量集中的哪一个信号量进行什么操作
 				一个结构体描述对信号量集中一个信号量的操作,具体是P还是V由结构体中的成员(sem_op)决定,如果你要一次性对该信号量集中的多个信号量进行操作(P(S1&S2)),需要多个结构体,组成一个结构体数组。
 				
@@ -405,19 +405,125 @@
 						信号量只应该被初始化一次,否则会产生不可预知的结果。	
 		
 		(2).POSIX信号量的操作
-		
-		
-		
+			有名信号量和无名信号量的操作API相同
+			
+			P操作
+			
+			NAME
+				   sem_wait, sem_timedwait, sem_trywait - lock a semaphore
+					都是用来获取信号量
+			SYNOPSIS
+				   #include <semaphore.h>
+				   //阻塞等待,如果不能获取则阻塞
+				   int sem_wait(sem_t *sem);
+				   //非阻塞等待,如果不能获取则返回并且报错
+				   int sem_trywait(sem_t *sem);
+				   
+					sem:指针,指向要操作的信号量(存储信号量的内存地址)
+					返回值:
+						成功返回0,表示获取了该信号量
+						失败返回-1,表示出错,errno被设置
+						
+				限时等待.作用和上面类型,第一个参数作用相同,第二个参数描述一个未来时间
+				int sem_timedwait(sem_t *sem, const struct timespec *abs_timeout);	
+					abs_timeout:绝对时间,指定等待带未来的某一个时间点
+					绝对时间 = 当前事件(1970年到现在的秒数)+要等待的时间
+					
+				struct timespec {
+					time_t tv_sec;      /* Seconds */
+					long   tv_nsec;     /* Nanoseconds [0 .. 999999999] */
+				};
+				例子:
+				clock_gettime()
+					NAME
+						   clock_gettime- clock and time functions
+
+					SYNOPSIS
+						   #include <time.h>
+						   int clock_gettime(clockid_t clk_id, struct timespec *tp);
+						   Link with -lrt (only for glibc versions before 2.17).
+						   librt.so
+				
+				struct timespec ts;
+				clock_gettime(CLOCK_REALTIME,&ts); //把当前存储到ts中
+				如果需要等待5秒30ms
+				ts.tv_sec +=5;
+				ts.tv_nsec += 30000000;
+				if(ts.tv_nsec >= 1000000000)
+				{
+					ts.tv_sec++;
+					ts.tv_nsec -=1000000000;
+				}
+				//ts描述的是一个绝对时间
+				sem_timedwait(sem,&ts);
+				
+				Link with -pthread.
+
+			
+			V操作
+			
+			NAME
+				   sem_post - unlock a semaphore
+				   //解锁一个信号量,使信号量递增
+			SYNOPSIS
+				   #include <semaphore.h>
+					int sem_post(sem_t *sem);
+					sem:指针,指向你要解锁的信号量
+					返回值:
+						成功返回0
+						失败返回-1,同时errno被设置
+			
+			其他操作getvalue
+			NAME
+				   sem_getvalue - get the value of a semaphore
+			SYNOPSIS
+				   #include <semaphore.h>
+
+				   int sem_getvalue(sem_t *sem, int *sval);
+						sem:指针,指向你要获取值的信号量
+						sval:指针,指向一块可用的空间,存放获取到的值
+					返回值:
+						成功返回0
+						失败返回-1,同时errno被设置
+						
 		(3).POSIX信号量的销毁
 			有名信号量
+				NAME
+					   sem_close - close a named semaphore
+				SYNOPSIS
+					   #include <semaphore.h>
+					   int sem_close(sem_t *sem);
+						sem:指针,指向你要关闭的信号量
+						返回值:
+							成功返回0
+							失败返回-1,同时errno被设置
+				NAME
+					   sem_unlink - remove a named semaphore
 
-
+				SYNOPSIS
+					   #include <semaphore.h>
+					   int sem_unlink(const char *name);
+						name:指针,指向你要删除的信号量的路径名
+						返回值:
+							成功返回0
+							失败返回-1,同时errno被设置
+							
 			无名信号量
-			
-		
-				
-				
+				NAME
+					   sem_destroy - destroy an unnamed semaphore
+				SYNOPSIS
+					   #include <semaphore.h>
 
+					   int sem_destroy(sem_t *sem);
+						sem:指针,指向你要销毁的信号量
+							仅仅是把sem指向的内存中的值变为未定义的
+						返回值:
+							成功返回0
+							失败返回-1,同时errno被设置
+				
+		练习:
+			1.使用POSIX有名信号量,修复BUG(shm_test.c)
+			2.使用POSIX无名信号量,修复BUG(shm_test.c)
 
 
 		
@@ -431,16 +537,12 @@
 			Mysem_P();
 			Mysem_V();
 			Mysem_Del();
-		
-			
-			
-			
-							
+								
 扩展:
 	1.死锁是什么状态?
 	2.死锁是如何产生的？
 	3.死锁如何解除?
-	4.死锁如何避免?
+	4.死锁如何避免? //银行家算法
 
 
 
