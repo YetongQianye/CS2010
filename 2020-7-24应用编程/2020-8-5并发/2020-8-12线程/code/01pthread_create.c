@@ -63,7 +63,7 @@ int main()
 	//printf("ch = %d\n",ch);
 	while(1)
 	{
-		printf("i am main,tid = %lu\n",tid);
+		printf("i am main,tid = %lu\n",idt);
 		sleep(1);
 	}
 	
