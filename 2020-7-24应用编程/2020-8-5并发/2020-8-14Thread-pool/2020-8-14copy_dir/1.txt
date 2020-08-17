@@ -1,0 +1,309 @@
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/01系统IO
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/01系统IO
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/01系统IO/code
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/01系统IO/code
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/01系统IO/code/test
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/01系统IO/code/test
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/01系统IO/图示
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/01系统IO/图示
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/01系统IO/笔记
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/01系统IO/笔记
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/02标准IO
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/02标准IO
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/02标准IO/code
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/02标准IO/code
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/02标准IO/图示
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/02标准IO/图示
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/02标准IO/笔记
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/02标准IO/笔记
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/bmp图片解析
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/bmp图片解析
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/bmp图片解析/bmp_test
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/bmp图片解析/bmp_test
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/bmp图片解析/bmp_test/BMP - 维基百科，自由的百科全书_files
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/bmp图片解析/bmp_test/BMP - 维基百科，自由的百科全书_files
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/bmp图片解析/display_bmp
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/bmp图片解析/display_bmp
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/bmp图片解析/display_bmp/display_bmp.si4project
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/bmp图片解析/display_bmp/display_bmp.si4project
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/bmp图片解析/display_bmp/display_bmp.si4project/Backup
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/bmp图片解析/display_bmp/display_bmp.si4project/Backup
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/bmp图片解析/display_bmp/display_bmp.si4project/cache
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/bmp图片解析/display_bmp/display_bmp.si4project/cache
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/bmp图片解析/display_bmp/display_bmp.si4project/cache/parse
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/bmp图片解析/display_bmp/display_bmp.si4project/cache/parse
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/jpeg
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/jpeg
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/jpeg/arm_libs
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/jpeg/arm_libs
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/jpeg/arm_libs/bin
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/jpeg/arm_libs/bin
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/jpeg/arm_libs/include
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/jpeg/arm_libs/include
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/jpeg/arm_libs/lib
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/jpeg/arm_libs/lib
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/jpeg/arm_libs/share
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/jpeg/arm_libs/share
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/jpeg/arm_libs/share/man
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/jpeg/arm_libs/share/man
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/jpeg/arm_libs/share/man/man1
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/jpeg/arm_libs/share/man/man1
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/jpeg/doc
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/jpeg/doc
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/jpeg/jpeg-test
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/jpeg/jpeg-test
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/jpeg/jpeg-test2
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/jpeg/jpeg-test2
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/linux-frame-buffer
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/linux-frame-buffer
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/pic
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/pic
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/pic/myjpeg
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/pic/myjpeg
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/serial
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/serial
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/touch_screen
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/touch_screen
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/word_diplay
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/word_diplay
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/01系统IO
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/01系统IO
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/01系统IO/code
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/01系统IO/code
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/01系统IO/code/test
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/01系统IO/code/test
+file des... error
+file des... error
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/01系统IO/图示
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/01系统IO/图示
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/01系统IO/笔记
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/01系统IO/笔记
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/02标准IO
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/02标准IO
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/02标准IO/code
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/02标准IO/code
+file des... error
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/02标准IO/图示
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/02标准IO/图示
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/02标准IO/笔记
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/02标准IO/笔记
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/bmp图片解析
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/bmp图片解析
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/bmp图片解析/bmp_test
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/bmp图片解析/bmp_test
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/bmp图片解析/bmp_test/BMP - 维基百科，自由的百科全书_files
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/bmp图片解析/bmp_test/BMP - 维基百科，自由的百科全书_files
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/bmp图片解析/display_bmp
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/bmp图片解析/display_bmp
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/bmp图片解析/display_bmp/display_bmp.si4project
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/bmp图片解析/display_bmp/display_bmp.si4project
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/bmp图片解析/display_bmp/display_bmp.si4project/Backup
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/bmp图片解析/display_bmp/display_bmp.si4project/Backup
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/bmp图片解析/display_bmp/display_bmp.si4project/cache
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/bmp图片解析/display_bmp/display_bmp.si4project/cache
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/bmp图片解析/display_bmp/display_bmp.si4project/cache/parse
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/bmp图片解析/display_bmp/display_bmp.si4project/cache/parse
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/jpeg
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/jpeg
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/jpeg/arm_libs
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/jpeg/arm_libs
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/jpeg/arm_libs/bin
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/jpeg/arm_libs/bin
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/jpeg/arm_libs/include
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/jpeg/arm_libs/include
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/jpeg/arm_libs/lib
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/jpeg/arm_libs/lib
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/jpeg/arm_libs/share
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/jpeg/arm_libs/share
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/jpeg/arm_libs/share/man
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/jpeg/arm_libs/share/man
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/jpeg/arm_libs/share/man/man1
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/jpeg/arm_libs/share/man/man1
+file des... error
+file des... error
+file des... error
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/jpeg/doc
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/jpeg/doc
+file des... error
+file des... error
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/jpeg/jpeg-test
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/jpeg/jpeg-test
+file des... error
+file des... error
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/jpeg/jpeg-test2
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/jpeg/jpeg-test2
+file des... error
+file des... error
+file des... error
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/linux-frame-buffer
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/linux-frame-buffer
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/pic
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/pic
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/pic/myjpeg
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/pic/myjpeg
+file des... error
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/serial
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/serial
+file des... error
+file des... error
+file des... error
+file des... error
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/touch_screen
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/touch_screen
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+scr:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/2020-7-24文件IO/03资料/word_diplay
+dest:/mnt/hgfs/CS2010/2020-7-24应用编程/2020-8-5并发/2020-8-14copy_dir/abc/03资料/word_diplay
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
+file des... error
