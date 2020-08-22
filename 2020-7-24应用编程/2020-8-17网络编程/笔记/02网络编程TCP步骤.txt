@@ -1,0 +1,314 @@
+TCP编程的基本API接口
+
+先自己写一个简单的客户端程序,能够连接windows下面的网络助手
+
+1.创建一个网络编程接口(socket)
+	NAME
+		   socket - create an endpoint for communication
+	SYNOPSIS
+		   #include <sys/types.h>          /* See NOTES */
+		   #include <sys/socket.h>
+			socket:创建一个网络编程接口,套接字
+		   int socket(int domain, int type, int protocol);		
+				domain:指定域,指定通信的协议族,socket接口不仅仅局限于TCP/IP,它还可以用于bluetooth,还可以用于本地进程间通信....
+						每一种通信下面都有许多的网络协议,我们把IPV4的下面的所有网络协议,归类到一个域(协议族):
+						AF_UNIX, AF_LOCAL   Local communication 本地进程通信
+						AF_INET             IPv4 Internet protocols    IPV4协议族
+						AF_INET6            IPv6 Internet protocols   IPV6协议族
+						....
+						
+				type:类型,指定要创建的套接字的类型
+					SOCK_STREAM 流式套接字----->TCP
+					SOCK_DGRAM	数据报套接字--->UDP
+					SOCK_RAW	原始套接字
+					
+				protocol:具体的应用程序协议,可以指定为0,标识不知名的私有应用协议
+				
+			返回值:
+				成功返回一个套接字描述符(>0,与文件描述符类似)
+				失败返回-1,同时errno被设置
+
+			int sock = socket(AF_INET,SOCK_STREAM, 0);	
+			if(sock == -1)
+			{
+				....
+			}
+
+2.连接服务器(connect)
+	NAME
+		   connect - initiate a connection on a socket
+	SYNOPSIS
+		   #include <sys/types.h>          /* See NOTES */
+		   #include <sys/socket.h>
+			connect:用来连接指定的服务器,用来将sockfd指定的socket连接到参数addr指定网络地址
+		   int connect(int sockfd, const struct sockaddr *addr,
+					   socklen_t addrlen);
+			sockfd:套接字描述符(客户端中,此处应该为本地套接字)
+			addr:指定服务器的地址(IP+端口号),表示你要连接哪一个服务器
+			addrlen:指定第二个参数的长度
+				返回值:
+					成功返回0
+					失败返回-1,同时errno被设置
+					
+					
+		服务器的地址(IP+端口号)???
+		
+		socket接口不仅仅局限于以太网(IPV4),也可以用于IPV6,蓝牙.....
+		不同的协议族,他们的地址结构体不同
+		struct sockaddr:
+		通用地址结构体,所有的socket函数的接口地址都是使用此参数描述,根据给定的地址结构体中第一个成员变量(指定协议族),来区分到底是哪一种地址结构体
+		
+		/usr/include/linux/socket.h
+		
+		typedef unsigned short __kernel_sa_family_t;
+		struct __kernel_sockaddr_storage {
+			__kernel_sa_family_t    ss_family;  /* 指定具体的协议族 */
+			char  __data[_K_SS_MAXSIZE - sizeof(unsigned short)]; //指定具体的地址
+		 }; 
+ 			
+		internet 协议地址结构体(IPV4)地址结构体的具体实现 
+		vim /usr/include/netinet/in.h
+		/* Structure describing an Internet socket address.  */
+		//下面的结构体可以描述一个IPV4的网络地址
+		struct sockaddr_in
+		{
+			__SOCKADDR_COMMON (sin_);
+			//sa_family_t sin_family;//指定协议族  AF_INET
+			in_port_t sin_port;         /* 端口号 */
+			struct in_addr sin_addr;        /* IPV4的具体地址 */
+			/* Pad to size of `struct sockaddr'.  */
+			unsigned char sin_zero[sizeof (struct sockaddr)-__SOCKADDR_COMMON_SIZE -
+			sizeof (in_port_t) -sizeof (struct in_addr)]; 
+			//填充字节,为了和通用地址结构体的大小一样大
+		};
+		
+		/* Type to represent a port.  */
+		typedef uint16_t in_port_t;
+		
+		/* Internet address.  */
+		typedef uint32_t in_addr_t;
+		struct in_addr
+		{
+			in_addr_t s_addr; //此处是一个IPV4的具体地址
+		};
+		
+	
+		//次结构体用来描述一个服务器(IPV4)的地址
+		struct sockaddr_in Saddr;
+		Saddr.sin_family = AF_INET;
+		Saddr.sin_port = 9998;//注意字节序
+		Saddr.sin_addr.s_addr = IP地址;//注意此处不是点分式
+		
+	IPV4地址之间的转换函数(点分式--->uint32_t  /uint32_t----->点分式):
+	NAME
+		   inet_aton, inet_addr, inet_network, inet_ntoa, inet_makeaddr, inet_lnaof, inet_netof - Internet address manipulation routines
+
+	SYNOPSIS
+		   #include <sys/socket.h>
+		   #include <netinet/in.h>
+		   #include <arpa/inet.h>
+
+		   int inet_aton(const char *cp, struct in_addr *inp);
+			inet_aton:把ip地址(点分式)转换为struct in_addr类型。
+				cp:指针,指向你要转换的ip地址(点分式的字符串)
+				inp:指针把转换完成的IP地址存放到指定的内存
+				返回值:
+					成功返回0,
+					失败返回-1,同时errno被设置
+			例子:
+			struct sockaddr_in Saddr;
+			Saddr.sin_family = AF_INET;
+			Saddr.sin_port = 9998;//注意字节序
+			//Saddr.sin_addr;
+			inet_aton("192.168.2.2",&(Saddr.sin_addr));
+					
+			inet_addr也是用来把ip地址(点分式)转换为struct in_addr类型		
+		   in_addr_t inet_addr(const char *cp);
+			例:
+			Saddr.sin_addr.s_addr = inet_addr("192.168.2.2");
+			
+			inet_network也是用来把ip地址(点分式)转换为struct in_addr类型
+		   in_addr_t inet_network(const char *cp);
+			=====================================================
+			上面三个函数都是用来把ip地址(点分式)转换为struct in_addr类型
+			
+			
+			inet_ntoa:用来把struct in_addr类型转换为点分式的IP地址
+		   char *inet_ntoa(struct in_addr in);
+				
+		
+	网络字节序和主机字节序之间的转换函数(端口号)
+		NAME
+			   htonl, htons, ntohl, ntohs - convert values between host and network byte order
+		SYNOPSIS
+			   #include <arpa/inet.h>
+			   
+			   h:host 主机字节序
+			   n:network 网络字节序
+			   l:long --->32bits(32位机器)
+			   s:short ---->16bits
+			   
+			   uint32_t htonl(uint32_t hostlong); //把主机字节序转为网络字节序(long)
+			   uint16_t htons(uint16_t hostshort); //把主机字节序转为网络字节序(short)
+			   uint32_t ntohl(uint32_t netlong);
+			   uint16_t ntohs(uint16_t netshort);
+			
+			struct sockaddr_in Saddr;
+			Saddr.sin_family = AF_INET;
+			Saddr.sin_port = htons(9998);
+			//Saddr.sin_addr;
+			inet_aton("192.168.2.2",&(Saddr.sin_addr));
+
+
+3.往套接字上面发送数据
+	write/send/sento 这三个函数,tcp都可以使用.udp只能用sendto
+	
+	NAME
+		   send, sendto, sendmsg - send a message on a socket
+			往socket上面发送数据
+	SYNOPSIS
+		   #include <sys/types.h>
+		   #include <sys/socket.h>
+		   
+		   ssize_t send(int sockfd, const void *buf, size_t len, int flags);
+				send前面的三个参数(socket/buf/len)都和write类似,都是将buf指定的len个字节的数据写入到sockfd指定的套接字
+				flags:一般为0
+				
+				返回值:
+					成功返回实际发送的字节数量
+					失败返回-1,同时errno被设置
+			sendto和send类似,多了两个参数	
+		   ssize_t sendto(int sockfd, const void *buf, size_t len, int flags,
+						  const struct sockaddr *dest_addr, socklen_t addrlen);
+				dest_addr:表示数据接收方的地址,UDP一定要指定(UDP是不需要连接的)
+					TCP可以不指定,sockfd对tcp来说是一个连接套接字,里面保存了服务器的地址
+				addrlen:dest_addr指向的结构体的长度
+				返回值:
+					成功返回实际发送的字节数量
+					失败返回-1,同时errno被设置
+					
+			NAME
+				   write - write to a file descriptor
+			SYNOPSIS
+				   #include <unistd.h>
+
+				   ssize_t write(int fd, const void *buf, size_t count);		
+
+
+4.从套接字上面接收数据
+	read/recv/recvfrom/   这三个函数,tcp都可以使用.
+
+	NAME
+		   read - read from a file descriptor
+	SYNOPSIS
+		   #include <unistd.h>
+		   ssize_t read(int fd, void *buf, size_t count);
+		   
+	NAME
+		   recv, recvfrom, recvmsg - receive a message from a socket
+	SYNOPSIS
+		   #include <sys/types.h>
+		   #include <sys/socket.h>
+			recv和recvfrom都是用来从指定的socket读取数据
+		   ssize_t recv(int sockfd, void *buf, size_t len, int flags);
+			recv前面的三个参数都和read类似,都是从sockfd指定的文件描述符中读取len个字节存储到buf指定的内存区域
+			flags:一般为0
+			
+			recvfrom前面四个参数和recv一样
+		   ssize_t recvfrom(int sockfd, void *buf, size_t len, int flags,
+							struct sockaddr *src_addr, socklen_t *addrlen);	   
+				src_addr:用来保存发送方的地址,UDP可以指定
+						如果UDP不指定,可以收到数据,但是不知道数据是谁发送过来的
+						tcp没有必要指定了,sockfd中保存了发送方的地址信息
+				addrlen:指针,指向的内存用来保存发送方地址的长度
+					在函数调用时,addrlen里面保存了src_addr指向的结构体的大小
+					函数返回时,addrlen里面保存了客户端地址的实际大小
+						防止越界,防止没有读取到发送方完整的地址
+5.关闭套接字
+	shutdown
+	NAME
+		   shutdown - shut down part of a full-duplex connection
+	SYNOPSIS
+		   #include <sys/socket.h>
+
+		   int shutdown(int sockfd, int how);
+			sockfd:要关闭的套接字
+			how:关闭方式,有三种
+				SHUT_RD  	关闭读
+				SHUT_WR		关闭写
+				SHUR_RDWR	关闭读写
+
+			返回值:
+					成功返回0,
+					失败返回-1,同时errno被设置
+
+
+6.bind(),把一个地址绑定到一个套接字上去
+	一般是服务器程序绑定一个地址,客户端连接的时候就只需要连接这个绑定的地址即可
+	NAME
+		   bind - bind a name to a socket
+	SYNOPSIS
+		   #include <sys/types.h>          /* See NOTES */
+		   #include <sys/socket.h>
+
+		   int bind(int sockfd, const struct sockaddr *addr,
+					socklen_t addrlen);
+				sockfd:你要绑定的套接字描述符
+				addr:你要绑定的地址的指针(一般是服务器的地址)
+				addrlen:绑定的地址结构体的大小
+			返回值:
+				成功返回0,
+				失败返回-1,同时errno被设置
+					
+7.listen 开启对一个套接字的监听操作
+	NAME
+		   listen - listen for connections on a socket
+	SYNOPSIS
+		   #include <sys/types.h>          /* See NOTES */
+		   #include <sys/socket.h>
+
+		   int listen(int sockfd, int backlog);
+			sockfd:要监听的套接字描述符
+			backlog:监听队列上最大的请求数
+			返回值:
+				成功返回0,
+				失败返回-1,同时errno被设置
+
+8.accept,处理一个已经完成三次握手的请求(接收一个socket上面的连接请求)	
+	工作在第三次握手之后
+	NAME
+		   accept, accept4 - accept a connection on a socket
+	SYNOPSIS
+		   #include <sys/types.h>          /* See NOTES */
+		   #include <sys/socket.h>
+			
+		   int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+			sockfd:监听套接字(服务器套接字)
+			addr:用来保存客户端的地址的(请求连接的客户端)
+			addrlen:和recvform中的功能类似,用来保存客户端地址的长度
+				在函数调用时,addrlen里面保存了addr指向的结构体的大小
+				函数返回时,addrlen里面保存了客户端地址的实际大小
+						防止越界,防止没有读取到发送方完整的地址
+			accept在没有完成的三次握手时,一直阻塞
+			返回值:
+				成功返回一个“连接套接字”(表示与一个特定的客户端连接,后序与这个客户端的数据通信都是通过该“连接套接字”,监听套接字可以继续处理其他客户端的请求)
+				失败返回-1,同时errno被设置
+
+		
+	练习:
+		根据笔记,写一个代码,给服务发送消息。
+
+作业:
+	自己写一个TCP服务器,可以用来和自己写的客户端通信。
+	
+	根据Udp的编程流程写出Udp的服务器和客户端。
+		
+	
+	
+	
+	
+	
+	
+	
+	
+		

@@ -1,0 +1,615 @@
+IO模型
+IO叫做输入输出,我们将IO理解为两个步骤:
+	a.等待IO事件就绪
+	b.事件就绪后进行真正意义上的数据迁移
+	
+	IO有两个重要的函数(read/write),同样进行两个步骤
+		等待事件就绪
+		获取/写入数据
+		
+IO模型研究的就是读写一个文件描述符的几种不同的行为:
+	有5种IO模型:
+	1.阻塞IO(阻塞式的等待IO事件)
+		读(read)
+			如果有数据(即使是小于你要读的字节数)直接返回数据
+			如果没有数据,则阻塞等待直到有数据或者出错
+		写(write)
+			如果有空间可写(即使是小于你要写的字节数),直接写入
+			如果没有空间,则阻塞带有空间或者出错
+		
+		最常用,最简单,效率最低。
+		在IO过程中,"等"的比率越小性能越好.
+		
+	2.非阻塞式IO
+		能读(有数据)则读,不能读则立即返回一个错误码
+		能写(有空间)则写,不能写则立即返回一个错误码
+		
+		IO请求每一次都会立即返回,但是我们的目的是为了IO,一般需要不断的轮询,达到目的
+		无畏的消耗了大量的CPU时间,一般很少会直接使用这种模型
+		
+	3.IO多路复用
+		允许同时对多个IO事件进行控制(select/poll/epoll)
+		这几个函数也会造成进程阻塞,但是和阻塞IO不同的是,可以同时对多个阻塞IO进行操作
+		
+	4.异步通知(信号驱动IO)
+		事件就绪了,就发送一个信号(SIGIO)给应用程序(等待IO事件的进程)
+		进程不会阻塞,当IO事件就绪时,进程收到信号,再去处理IO事件
+	
+		一般把上面四种叫做同步IO(自己等,自己处理IO事件)
+	5.异步IO	
+		只是发起IO事件,当事件就绪的时候,并不会自己处理IO事件
+		
+	可以改变一个文件的IO方式(阻塞的/非阻塞式)
+	(1).open的时候
+		加上O_NONBLOCK --->非阻塞
+		没加O_NONBLOCK --->阻塞
+		
+	(2).可以改变已经打开的文件的状态
+		O_NONBLOCK 属于文件的状态标记,我们可以在打开后修改(fcntl)
+	
+		fcntl 可以改变已经打开的文件的性质
+			性质:
+				文件描述符标志
+					FD_CLOEXEC       close on exec
+						0 表示exec时不关闭已经打开的文件描述符
+						1 表示exec时关闭已经打开的文件描述符
+				文件状态标志
+					O_RDONLY
+					O_WRONLY
+					O_RDWR
+					O_APPEND
+					O_SYNC
+					O_NONBLOCK
+					O_ASYNC  异步通知,当文件描述符有数据时会自动产生一个SIGIO
+					.....
+				这些属性保存在struct file结构体中的一个成员变量中,是通过位域实现的
+				成员变量(unsigned long f_flags)
+		NAME
+			   fcntl - manipulate file descriptor
+
+		SYNOPSIS
+			   #include <unistd.h>
+			   #include <fcntl.h>
+
+			   int fcntl(int fd, int cmd, ... /* arg */ );
+			fcntl用来操作一个指定的文件描述符,具体的操作由cmd来指定
+			
+		常用的有5种功能:
+		1.复制一个现有的文件描述符(cmd == F_DUPFD)
+			复制一个现有的文件描述符,新文件描述符作为函数的返回值,
+			是尚未使用的文件描述符中大于或者等于第三个参数中的最小值
+			fd--->1.txt
+			new_fd = fcntl(fd,F_DUPFD,20);
+			fd和new_fd都指向1.txt,且new_fd>=20
+			
+			
+		2.获取/设置文件描述符标记(cmd == F_GETFD/cmd == F_SETFD)
+			F_GETFD:对应的文件描述符标记作为返回值返回
+			F_SETFD:把第三个参数作为文件描述符标记的新值
+			
+			fcntl(fd,F_SETFD,1);
+		
+		3.获取/设置文件状态标记(cmd == F_GETFL/cmd == F_SETFL)
+			F_GETFL:获取文件状态标记,文件状态标志作为返回值返回,第三个参数忽略
+			F_SETFL:设置文件状态标记,新状态标记为第三个参数
+			
+			例子:
+				1.判断一个打开的文件是否为非阻塞?
+				unsigned long flags = fcntl(fd,F_GETFL);
+				if(flags & O_NONBLOCK)
+				{
+					return true;//是非阻塞的
+				}
+				return false;//是阻塞的
+				
+				2.设置一个已经打开的文件为阻塞?
+				unsigned long flags = fcntl(fd,F_GETFL);
+				flags &= ~O_NONBLOCK;//去掉O_NONBLOCK这个标记,其他标记不变
+				fcntl(fd,F_SETFL,flags);
+				
+				 File access mode (O_RDONLY, O_WRONLY, O_RDWR) and file creation flags
+              (i.e., O_CREAT, O_EXCL, O_NOCTTY, O_TRUNC) in arg are ignored. 
+			  
+		4.获取/设置文件属主进程(所有者进程)	(cmd == F_GETOWN/cmd == F_SETOWN)
+			F_GETOWN:获取文件属主进程id,作为函数返回值返回	
+			F_SETOWN:设置文件属主进程,把第三个参数作为新的属主进程id
+			
+		5.获取/设置文件记录锁(cmd == F_GETLK/cmd == F_SETLK,F_SETLKW)	
+			文件的任何一部分的内容都叫做记录
+			记录锁,锁住文件的内容(读/写)
+			当一个进程正在读/写某一个文件的时候,它可以阻止其他进程修改锁住的内容
+			
+				struct flock {
+					   ...
+					   short l_type;    /* Type of lock: F_RDLCK, //锁的类型
+										   F_WRLCK, F_UNLCK */
+										 //配合第三个参数使用(表示锁的起点)
+					   short l_whence;  /* How to interpret l_start:
+										   SEEK_SET, SEEK_CUR, SEEK_END */
+					   off_t l_start;   /* Starting offset for lock */
+										//偏移量
+					   off_t l_len;     /* Number of bytes to lock */
+										//表示锁住的长度,0表示锁到文件末尾
+					   pid_t l_pid;     /* PID of process blocking our lock
+										   (set by F_GETLK and F_OFD_GETLK) */
+										   //持有锁的进程
+					   ...
+				   };
+			如果文件是只读打开的,只能加读锁
+			如果文件是只写打开的,只能加写锁	
+			一个文件只能同时有一个锁
+			例子:
+				struct flock f;
+				f.l_type = F_RDLCK;
+				f.l_start = 0;
+				f.l_whence = SEEK_SET;
+				f.l_len = 0;
+				
+				r = fcntl(fd,F_GETLK,&f)
+				if(r != 0)
+				{
+					不能获取f描述的记录锁
+				}
+				获取f描述的记录锁
+			
+2.多路复用的实现方法(select/poll/epoll)
+	使用一个函数实现对多个文件描述符的IO监听
+	
+	1.select的实现原理
+		假如使用select处理网络编程中的服务器套接字和多个客户端的连接套接字
+		(1).将连接套接字和服务器本身的监听套接字,放到一个集合中,然后将这个集合拷贝至内核
+		(2).在内核中注册一个pollwait系统调用,轮询所有的文件描述符,当有一个或者多个文件描述符就绪的时候(就绪读/就绪写/服务器就绪)
+		(3).将轮询的文件描述符集合,从内核空间拷贝到用户空间
+		缺点:
+			每一次select文件描述符会copy两次
+			事件就绪的时候,只能告诉你有事件就绪了,并不能确定告诉你是哪一个文件描述符就绪
+			
+		NAME
+			   select, pselect, FD_CLR, FD_ISSET, FD_SET, FD_ZERO - synchronous I/O multiplexing
+
+		SYNOPSIS
+			   /* According to POSIX.1-2001, POSIX.1-2008 */
+			   #include <sys/select.h>
+			   /* According to earlier standards */
+			   #include <sys/time.h>
+			   #include <sys/types.h>
+			   #include <unistd.h>
+				
+				用类型fd_set来表示一个文件描述符的集合,因为你肯定是监听多个文件描述符,
+				需要使用一个fd_set的集合来表示你感兴趣的文件描述符集合
+					可能要监听:
+							是否可读
+							是否可写
+							是否出错
+				需要三个fd_set的变量来分别表示  
+							监听可读的文件描述符
+							监听可写的文件描述符
+							监听出错的文件描述符
+			   void FD_CLR(int fd, fd_set *set); //把fd从set指向的集合中删除
+			   int  FD_ISSET(int fd, fd_set *set); //判断fd是否存在于set指向的集合
+			   void FD_SET(int fd, fd_set *set); //把fd加入到set指向的集合
+			   void FD_ZERO(fd_set *set); //清空set指向的集合
+			   
+			   
+			   int select(int nfds, fd_set *readfds, fd_set *writefds,
+						  fd_set *exceptfds, struct timeval *timeout);
+					nfds:所有要监听的文件描述中的最大值+1
+					readfds:指向你要监听是否可读的文件描述符集合
+							select返回时,集合中保存的是已经可读的文件描述符集合
+					writefds:指向你要监听是否可写的文件描述符集合(如果不需要则为NULL)
+							select返回时,集合中保存的是已经可写的文件描述符集合
+					exceptfds:指向你要监听是否出错的文件描述符集合(如果不需要则为NULL)
+							select返回时,集合中保存的是已经出错的文件描述符集合
+					timeout:超时时间
+							a. NULL.永远的等待下去(没有fd就绪就一直阻塞)
+							b. 等待一段固定的时间,timeout设置一个时间值(相对时间)
+							c. 根本不等待,检测一次后立刻select返回,timeout设置为0
+			·			struct timeval
+						{
+							long tv_sec;//秒
+							long tv_usec;//微秒
+						};
+						select返回后,timeout里面的值被改变,设置成剩余的时间数.
+					返回值:
+						>0 表示已经就绪的文件描述符的个数
+							由于监听的文件描述符可能有多个,至于是哪一些文件描述符就绪了,需要在select返回后,使用FD_ISSET一个一个去测试
+						=0 超时了
+						-1 表示select出错了,errno被设置。
+							
+			伪代码例子(SELECT的思路):实现IO复用
+			fd_set rfds;//监听是否可读的集合
+			int max_fd = 0;
+			struct timeval timeout;
+			
+			while(!terminate)
+			{
+				//每次select都需要重新清空结合,加入所有文件描述符
+				//清空select监听的集合
+				FD_ZERO(&rfds);
+				//把需要监听的文件描述符加入监听集合(服务器监听套接字和所有连接套接字)
+				while(??)
+				{
+					FD_SET(fd,&rfds);
+					max_fd = (fd >= max_fd)?fd+1:max_fd;
+				}
+				
+				//设置超时事件为2S
+				timeout.tv_sec = 2;
+				timeout.tv_usec = 0;
+				//不断的使用select去测试
+				r = select(max_fd,&rfds, NULL,NULL, &timeout);
+				if(r <= 0)
+				{
+					continue;
+				}
+				//肯定有文件描述符就绪
+				//判断是服务器监听套接字还是连接套接字就绪了
+				//判断服务器是否就绪
+				if(FD_ISSET(sockfd,&rfds))
+				{
+				
+				}
+				//判断连接套接字是否就绪
+				while(??)
+				{
+					if(FD_ISSET(fd,&rfds))
+					{
+						char buf[256] = {0}
+						while(1)
+						{
+							r = read(fd,buf,256);
+							if(r == -1)
+							{
+								//读完了
+								break;
+							}
+							write()//写入日志文件
+						}
+					}
+				}
+			}
+			
+	2.poll
+	和select的功能类型,只不过在内核轮询的时候,poll使用链表存储文件描述符,但是select使用数组存储文件描述符(select最多只能监听1024个文件描述符)。
+	NAME
+		   poll, ppoll - wait for some event on a file descriptor
+
+	SYNOPSIS
+		   #include <poll.h>
+			poll的功能与作用,和select是一样的
+			只不过,poll实现的是使用结构体来描述要监听的文件描述符以及要监听的事件
+			
+			struct pollfd就能够表示一个要监听的文件描述符以及文件描述符上面的事件
+			
+			struct pollfd {
+               int   fd;         //要监听的文件描述符
+               short events;    //你要监听的事件,使用事件码来表示,事件码是使用位域实现
+								POLLIN 可读事件
+								POLLOUT	可写事件
+								POLLERR 出错
+								...
+               short revents;   //已经发生的事件
+            };
+			需要监听一个文件描述符就需要一个struct pollfd
+			需要监听多个文件描述符就需要多个struct pollfd
+			....
+			使用一个结构体数组来表示所有要监听的文件描述符
+			把结构体数组传入poll函数即可
+			
+		   int poll(struct pollfd *fds, nfds_t nfds, int timeout);	
+			fds:struct pollfd的数组
+			nfds:上面的数组中有多少个元素
+			timeout:超时时间,单位为毫秒
+			
+			返回值:
+				>0 表示就绪的文件个数
+				=0 超时了
+				-1 表示出错了
+
+
+	练习:
+		理解select的用法和poll的用法.
+		把上面的伪代码改成使用poll实现。
+			
+		伪代码的例子:
+		假如使用poll处理网络编程中的服务器套接字和多个客户端的连接套接字的IO事件
+		
+		struct pollfd fds[1024];//保存需要监听的文件描述已经对应的期待事件
+		struct timeval timeout;	
+		
+		while(!terminate) //terminate全局变量
+		{
+			//描述所有需要监听的事件
+			//描述服务器的IO事件
+			fds[0].fd = sockfd;
+			fds[0].events = POLLIN; //期待可读
+			fds[0].revents = 0;//保存已经发生的事件
+			//描述所有客户端的IO事件
+			while(???)
+			{
+				fds[i].fd = confd;
+				fds[i].events = POLLIN | POLLOUT; //期待可读
+				fds[i].revents = 0;//保存已经发生的事件
+			}
+			
+			r = poll(fds,i+1,1000);	
+			if(r <= 0) //超时或者出错
+			{
+				continue;
+			}
+			
+			//处理就绪的事件
+			//判断是不是服务器就绪
+			if(fds[0].revents  & POLLIN) //服务器就绪(有新的客户端连接)
+			{
+				accept()
+				//把客户端信息保存到客户端链表
+				......
+			}
+			//判断是不是客户端就绪
+			while(???)
+			{
+				if(fds[i].revents & POLLIN)//客户端可读
+				{
+					char buf[256] = {0};
+					while(1)
+					{
+						r = read(fds[i].fd,buf,256)
+						if(r == 0) //读完了
+						{
+							
+						}else if(r == -1) //读失败(客户端主动关闭了连接)
+						{
+							把客户端从链表中删除
+						}
+					}
+				}else if(fds[i].revents & POLLOUT) //客户端可写
+				{
+					......
+				}
+			}
+		}
+		
+	poll和select有一个共同点
+		每一次poll/select,文件描述符都需要复制两次(效率比较低)
+		每一次poll/select返回后,都需要轮询一次文件描述符去确定到底是哪一个文件描述符就绪了
+			
+			
+	3.epoll
+		很长一段时间,linux都是使用select实现IO复用,但是epoll改进了select的两个缺点。
+		epoll不会随着监听的文件描述符数量增多而降低效率(在返回后不需要轮询)
+		epoll的接口非常简单,一共只有三个函数
+		1.创建一个epoll的句柄(epoll_create)
+			NAME
+				   epoll_create - open an epoll file descriptor
+
+			SYNOPSIS
+				   #include <sys/epoll.h>
+					epoll_create:创建一个监听集合,这个函数的返回值是一个文件描述符
+				   int epoll_create(int size);
+					size:已经被忽略,但是>0.
+					注意:epoll创建好之后,本身会占用一个文件描述符
+						使用完epoll后,必须调用close关闭,否则可能会导致fd被消耗完毕
+						
+					返回值:
+						成功返回一个epoll的实例(文件描述符)
+						失败返回-1,同时errno被设置
+						
+				int epfd = epoll_create(100);
+				if(epfd == -1)
+				{
+					....
+				}
+						
+		
+		2.将需要监听的描述符添加到epoll句柄或者从epoll句柄中删除或者对监听的事件进行修改
+			epoll_ctl
+			NAME
+				   epoll_ctl - control interface for an epoll file descriptor
+			SYNOPSIS
+				   #include <sys/epoll.h>
+				   int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event);
+					epfd:一个epoll的实例,epoll_create的返回值
+					op:具体对epoll实例的哪种操作
+						EPOLL_CTL_ADD:增加一个文件描述符fd到epoll所表示的实例
+						EPOLL_CTL_MOD:修改fd的要监听的事件
+						EPOLL_CTL_DEL:从epoll所表示的实例删除fd	
+					fd:你要操作(add,mod,delete)的文件描述符
+					event:要监听fd的哪一些事件
+						struct epoll_event{
+						   uint32_t     events;   //要监听的事件,使用位域实现
+						   epoll_data_t data;    //用来保存一些用户数据
+												//一般用来保存上面的fd值
+					   };
+
+						typedef union epoll_data {
+						   void        *ptr;
+						   int          fd;
+						   uint32_t     u32;
+						   uint64_t     u64;
+						}epoll_data_t;
+
+						可以监听的一些事件:
+							EPOLLIN  监听可读的事件
+							EPOLLOUT 监听可写的事件
+							EPOLLRDHUP 这个事件,用来监听TCP套接字是否已经关闭
+							EPOLLERR 监听出错的事件
+							EPOLLET   边缘触发
+								这个是一个标志,表示监听的文件的数据有变化时,才报告这个事件
+								和边缘触发对应的一个是水平触发
+								水平触发:
+									当epoll_wait检测到描述符事件发生了并将此事件通知应用程序,应用程序可以不处理,下次调用epoll_wait时,会再次相应此事件(通知应用程序)
+								边缘触发:
+									当epoll_wait检测到描述符事件发生了并将此事件通知应用程序,应用程序必须处理,如果不处理,下次调用epoll_wait时,会再次相应此事件(通知应用程序)
+								
+								如:
+								一个文件里面有2K的数据,报告一个可读事件
+								这个时候,你去处理这个可读事件,读走1K的数据,文件中还剩下1K数据
+								LT:level Triggered(没有设置EPOLLET)
+									下次调用epoll_wait时,epoll_wait会立马返回,报告有数据可读
+								ET:Edge Triggered(设置EPOLLET)
+									下次调用epoll_wait时,不会返回,直到这1K的数据量有变化时才返回
+									
+						返回值：
+							成功返回0,
+							失败返回-1,同时errno被设置
+				例子:把服务器的描述符加入到epoll实例
+				struct epoll_event event;
+				event.events = EPOLLIN | EPOLLET;
+				event.data = sockfd;//把sockfd当做用户数据存储起来
+				int r = epoll_ctl(epfd,EPOLL_CTL_ADD,sockfd,&event);
+				if(r == -1)
+				{
+					....
+				}
+										
+		3.等待事件触发,等待监听的文件描述符就绪	(epoll_wait)
+			NAME
+				   epoll_wait - wait for an I/O event on an epoll file descriptor
+
+			SYNOPSIS
+				   #include <sys/epoll.h>
+					epoll_wait等待epfd实例上面的文件描述符发生IO事件
+							等待epfd实例上面监听的事件发生
+				   int epoll_wait(int epfd, struct epoll_event *events,
+								  int maxevents, int timeout);	
+					epfd:epoll表示的实例,
+					events:指针,指针指向的空间用来保存已经就绪的事件(struct epoll_event)
+							可能有多个事件同时就绪,events指向的是一个数组
+					maxevents:表示第二个参数,结构体数组中最多有多少个可用的空间
+					timeout:超时时间,单位为毫秒
+					
+				返回值:
+					>0 表示就绪的文件个数
+					=0 超时了
+					-1 表示出错了
+			
+		epoll的伪代码例子:
+		假如使用epoll处理网络编程中的服务器套接字和多个客户端的连接套接字的IO事件	
+		
+		//1.创建一个epoll的实例
+		int epfd = epoll_create(100);
+		if(epfd == -1)
+		{
+			perror("epoll_create error");
+			return -1;
+		}
+		//2.把所有的需要监听的文件描述符加入到epoll实例
+		//把服务器的监听套接字加入文件描述符
+		struct epoll_event event;
+		event.events = EPOLLIN | EPOLLET;
+		event.data = sockfd;//把sockfd当做用户数据存储起来
+		int r = epoll_ctl(epfd,EPOLL_CTL_ADD,sockfd,&event);
+		//把所有的客户端连接套接字加入文件描述符
+		while(???)
+		{
+			struct epoll_event event;
+			event.events = EPOLLIN;
+			event.data = confd;//把连接套接字当做用户数据存储起来
+			int r = epoll_ctl(epfd,EPOLL_CTL_ADD,confd,&event);
+		}
+		
+		//3.开始对epoll实例中所有文件描述符的监听
+		
+		while(!terminate)
+		{
+			struct epoll_event ev[1024] = {0};
+			//把所有就绪的事件保存到events表示的数组中
+			r = epoll_wait(epfd,ev,1024,1000);
+			if(r == 0)
+			{
+				continue;
+			}esle if(r == -1)
+			{
+				perror("epoll_wait error");
+				close(epfd);
+				return -1;
+			}
+
+			//处理就绪的事件
+			int i;
+			for(i=0;i<r;i++)
+			{
+				//ev[i].data 就是表示已经就绪的文件描述符
+				if(ev[i].data == sockfd) //服务器就绪
+				{
+					accept()
+				}else //客户端就绪 
+				{
+					read();
+				}
+			}
+		}	
+			
+			
+作业:
+	写一个TCP的并发服务器,能够实现的功能如下:
+		能够同时处理多个客户端的连接请求(将每一个连接的客户端的信息存储到双向链表中)
+		能够将每一个客户端发送的消息存储到对应的日志文件,日志文件以IP+端口号自动命名
+		
+			
+	可以只写服务器,客户端使用网络助手模拟
+
+	make_tcp.c/make_tcp.h
+		初始化一个TCP服务器的套接字
+	Linklist.c/Linklist.h
+		增:当服务器有新客户端时,得增加结点
+		删:当客户端关闭连接时,需要删除结点
+		查:根据客户端的连接套接字找到对应的日志文件
+	
+		链表结点如何设计:
+		//保存客户端的信息
+		typedef struct cli_info
+		{
+			int fd;//客户端连接套接字
+			FILE *fp;//对应的日志文件的文件指针
+			unsigned short port;//客户端的端口号
+			char ip[16];//点分式的客户端IP地址
+		}CLI_INFO;
+		
+		
+		数据结点
+		typedef struct node
+		{
+			//客户端信息(数据域)
+			CLI_INFO cli;	
+			//指针域
+			struct node *next;
+			struct node *prev;
+		}Node;
+		
+		头结点
+		typedef struct head
+		{
+			Node *first;
+			Node *last;
+			int num;
+		}Head;
+	
+	main.c
+
+		//初始化一个TCP服务器的套接字
+		
+		
+		//使用多路复用监听服务器套接字
+		......
+		
+		
+	
+	
+	
+	
+	
+	
+	
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			

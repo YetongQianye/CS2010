@@ -1,0 +1,26 @@
+UNIX域协议(进行本地的进程间通信)
+	利用socket编程接口来实现的一套本地进程间通信的协议
+	UNIX域协议套接字:
+		SOCK_STREAM
+		SOCK_DGRAM
+		UNIX域数据报服务(SOCK_DGRAM)的通信是可靠的,不会造成消息丢失,也不会出错
+		
+	IP协议使用IP地址和端口号表示服务器和客户端的地址(IP+Port)
+	UNIX域协议使用普通文件系统中的路径名标识服务器和客户端的地址(Pathname)	
+		
+1.UNIX域协议的特点
+	编程流程和IPV4的编程流程一样,只不过协议的地址是使用普通文件系统中的路径名
+	UNIX域协议套接字地址具体结构体如下<sys/un.h>:
+		#define UNIX_PATH_MAX   108                                                 
+		struct sockaddr_un {
+		   __kernel_sa_family_t sun_family; /* AF_UNIX */ //具体的协议 AF_UNIX/AF_LOCAL
+		   char sun_path[UNIX_PATH_MAX];   /* pathname */
+			//unix域协议的地址,是以'\0'结束的本地文件系统中的绝对路径名
+		};
+
+		编程实例可以使用TCP也可以使用UDP	
+		
+		DBUS服务就是使用UNIX域协议来实现的一套进程间通信的方法
+		
+		
+

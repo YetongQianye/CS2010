@@ -1,0 +1,56 @@
+套接字选项 socket options
+
+每一个套接字在不同的协议层次(级别)上面有不同的行为属性(选项),有两个函数可以用来设置/获取这些套接字的选项:
+	getsockopt:获取套接字选项的值
+	setsockopt:设置套接字的选项值
+	
+	NAME
+		   getsockopt, setsockopt - get and set options on sockets
+
+	SYNOPSIS
+		   #include <sys/types.h>          /* See NOTES */
+		   #include <sys/socket.h>
+
+		   int getsockopt(int sockfd, int level, int optname,
+						  void *optval, socklen_t *optlen);		  
+		   int setsockopt(int sockfd, int level, int optname,
+						  const void *optval, socklen_t optlen);
+				sockfd:	要设置/获取的套接字描述符
+				level:级别,你要设置或者获取的套接字在哪一个级别
+				optname:选项名字
+				optval:指针
+					(get) 用来保存获取到的值
+					(set) 用来设置选项的值
+					不同的选项有不同的类型,需要查表
+					
+				optlen:
+					get:指针,用来保存选项值的长度
+						调用前保存optval指向的内存的可用长度
+					set:变量,用来指定设定的选项值的长度
+
+				返回值:
+					成功返回0
+					失败返回-1,同时errno被设置。
+					
+	练习:
+		设置套接字选项,允许地址和端口号重用
+
+			选项名:SO_REUSEADDR/SO_REUSEPORT
+			级别:SOL_SOCKET
+			值的类型:int
+					0表示不允许/1表示允许
+			int flag = 1;		
+			int r = setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,(void *)&flag,sizeof(flag));		
+
+			int r = setsockopt(sockfd,SOL_SOCKET,SO_REUSEPORT,(void *)&flag,sizeof(flag));	
+
+		获取地址是否可重用:
+			int flag;
+			int len = sizeof(flag);
+			int r = getsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,(void *)&flag, &len);	
+
+
+
+
+
+
